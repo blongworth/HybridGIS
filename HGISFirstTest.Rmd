@@ -1,0 +1,113 @@
+---
+title: "First Hybrid GIS Tests"
+output:
+  html_notebook: default
+  html_document: default
+date: "03-28-2017"
+---
+
+```{r libraries}
+library(amstools)
+library(tidyverse)
+library(ggplot2)
+```
+
+First tests of the USAMS SNICS-134 Hybrid gas ion source.
+
+# First Day
+
+USAMS032817
+
+```{r}
+data <- read.delim("/mnt/shared/USAMS/Results/USAMS032817R.txt",
+                   skip = 4, comment.char = "=") %>%
+  mungeResfile() 
+```
+
+## Currents
+
+For the first target, we turned up the gas supply pressure while measuring source current at the high energy FC. These currents are roughly equivalent to le12C.
+
+```{r}
+cur <- read.delim("1sttestcurrents.csv")
+
+cur %>% filter(t > 5) %>% ggplot(aes(regp, he12c)) + geom_line() + geom_point()
+```
+
+Currents were very stable after an initial burn in of ~10m. Initial current started at ~12uA without gas on target and decayed (roughly) exponentially to a minimum around 1.2uA.
+
+
+```{r}
+data %>% filter(Pos %in% c(11,12)) %>% ggplot(aes(ts, he12C, color = Pos)) + geom_line() + geom_point() + ylim(c(0,8))
+```
+
+## Ratios
+
+### Summary table
+```{r}
+data.s <- data %>% group_by(Pos) %>% summarize(c1412.m = mean(X14.12he),
+                                         c1412.s = sd(X14.12he),
+                                         c1412.sdr = c1412.s/c1412.m,
+                                         c1412.se = se(X14.12he),
+                                         c1412.ser = c1412.se/c1412.m,
+                                         counts = sum(CntTotGT),
+                                         interr = 1/sqrt(counts))
+knitr::kable(data.s, digits = 4)
+```
+
+
+### Plots
+
+Boxplots of modern and dead samples. Ratios were essentially stable over time. Positions < 10 are solid samples run for comparison.
+
+#### Modern
+```{r}
+data %>% filter(X14.12he > .4) %>% ggplot(aes(Pos, X14.12he, color = Num)) + 
+        geom_boxplot()
+```
+
+#### Dead
+```{r}
+data %>% filter(X14.12he < .4) %>% ggplot(aes(Pos, X14.12he, color = Num)) + 
+        geom_boxplot()
+```
+
+# Second Day
+
+```{r}
+# 
+data2 <- read.delim("/mnt/shared/USAMS/Results/USAMS040317R.txt",
+                   skip = 4, comment.char = "=") %>%
+  filter(Pos == 13) %>%
+  mungeResfile() 
+
+# Assign Run numbers
+counter <- 0
+Run <- c(1:190)
+for (i in 1:nrow(data2)) {
+  if (data2$Meas[i] == 1) {
+    counter <- counter + 1
+  }
+  Run[i] <- counter
+} 
+data2$Run <- Run
+
+# Load pressure data
+pres <- read.csv("USAMS040317Pressure.csv")
+pres$Run <- as.numeric(row.names(pres))
+
+# Join to run data
+data2 <- inner_join(data2, pres)
+
+# summarize
+d2.s <- data2 %>% group_by(Run, Bottle, Source) %>% summarize(le12C = mean(le12C),
+                                              he12C = mean(he12C),
+                                              C1412he = mean(X14.12he),
+                                              cor1412he = mean(cor1412he))
+```
+
+```{r}
+ggplot(d2.s, aes(Bottle, le12C)) + geom_point()
+ggplot(d2.s, aes(Bottle, he12C)) + geom_point()
+```
+
