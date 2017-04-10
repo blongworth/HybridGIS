@@ -1,10 +1,12 @@
 ---
 title: "First Hybrid GIS Tests"
 output:
-  html_notebook: default
   html_document: default
+  html_notebook: default
 date: "03-28-2017"
 ---
+
+First tests of the USAMS SNICS-134 Hybrid gas ion source.
 
 ```{r libraries}
 library(amstools)
@@ -12,15 +14,91 @@ library(tidyverse)
 library(ggplot2)
 ```
 
-First tests of the USAMS SNICS-134 Hybrid gas ion source.
+# Flow rates
+
+## Calculated flow
+
+###Pouiselles equation
+
+$$
+Q = \frac{\Delta P \pi R^4}{8 \mu \Delta x}
+$$
+Where $\Delta P$ is change in pressure (Pa ($\frac{kg}{m \cdot s^2}$)), $R$ is radius of pipe (m), $\mu$ is dynamic viscosity ( $P \cdot s$ ($\frac{kg}{s \cdot m}$)), and $\Delta x$ is the length of the pipe (m). Q is in $\frac{m^3}{s}$
+
+## measured flow
+
+### Leak detector
+
+Measured leak rate using Helium leak detector. Ran capillary to KF adapter flange. Pressures in kPa, leak rates in $\frac{Pa\cdot m^3}{s}$. Leak detector switched to gross leak mode between 150 kPa and 200 kPa.
+
+```{r}
+ldflow <- read.csv("HeLeakCapillaryFlow.csv", skip = 3)
+
+# convert to sccm
+ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016,
+                 co2sccm = sccm * 14.9/19.97) # co2/He viscosity
+# factor for He vs CO2
+
+ggplot(ldflow, aes(Regulator, co2sccm)) + geom_point()
+```
+
+## Functions for flow and efficiency
+```{r}
+
+# convert L CO2 to atoms C
+lCO2toatC <- function (vol) {
+  molC <- vol * 1/22.4 # 22.4 L of gas per mole at stp
+  atC <- molC * 6.022E23
+  atC
+}
+
+
+# convert current in A to atoms C/sec
+CcurtoatC <- function(cur, cs){
+  at12C <- cur * 6.25E18 # electrons per coulomb
+  at12C <- at12C / cs # divide by charge state
+  at12C
+}
+
+# convert delta pressure in Pa to flow in m^3/s
+prestoflow <- function(dp, r = 2.5E-5, u = 1.49E-5, l = 8.2 ) {
+  # r = radius of capillary
+  # l = length of capillary
+  # u = viscosity kg/m
+  flow <- dp * pi * r^4 / 8 / u / l
+  flow
+}
+
+# convert gauge kPa to uL/min
+flowcalc <- function(pres) {
+  dppa <- pres * 1E3 #convert kPa to Pa
+  flowcms <- prestoflow(dppa)
+  flowuls <- flowcms * 1E6 * 1E3
+  flowulm <- flowuls * 60
+  flowulm
+}
+
+# calculate efficiency from ml/m CO2 and uA C12
+hgis_eff <- function(ulm, uA, cs = 3) {
+  
+  # if flow is zero or less, efficiency doesn't make sense
+  ulm <- ifelse(ulm <= 0, NA, ulm)
+  
+  vol <- ulm * 1E-6 # conv to L
+  cur <- uA * 1E-6 # conv to A
+  atCin <- lCO2toatC(vol) / 60 # gives atoms/s
+  atC12out <- CcurtoatC(cur, cs)
+  atCout <- atC12out / .99 # 99% of C is 12C, we need total C
+  atC12out / atCin
+}
+```
 
 # First Day
 
 USAMS032817
 
 ```{r}
-data <- read.delim("/mnt/shared/USAMS/Results/USAMS032817R.txt",
-                   skip = 4, comment.char = "=") %>%
+data <- readResfile("/mnt/shared/USAMS/Results/USAMS032817R.txt") %>%
   mungeResfile() 
 ```
 
@@ -29,9 +107,14 @@ data <- read.delim("/mnt/shared/USAMS/Results/USAMS032817R.txt",
 For the first target, we turned up the gas supply pressure while measuring source current at the high energy FC. These currents are roughly equivalent to le12C.
 
 ```{r}
-cur <- read.delim("1sttestcurrents.csv")
-
-cur %>% filter(t > 5) %>% ggplot(aes(regp, he12c)) + geom_line() + geom_point()
+cur <- read.delim("1sttestcurrents.csv") %>%
+  mutate(flow = flowcalc(regp),
+         eff = hgis_eff(flow, he12c)) %>%
+  filter(t > 5) 
+cur
+ggplot(cur, aes(regp, he12c)) + geom_line() + geom_point()
+ggplot(cur, aes(regp, flow)) + geom_line() + geom_point()
+ggplot(cur, aes(flow, eff)) + geom_line() + geom_point()
 ```
 
 Currents were very stable after an initial burn in of ~10m. Initial current started at ~12uA without gas on target and decayed (roughly) exponentially to a minimum around 1.2uA.
@@ -76,8 +159,7 @@ data %>% filter(X14.12he < .4) %>% ggplot(aes(Pos, X14.12he, color = Num)) +
 
 ```{r}
 # 
-data2 <- read.delim("/mnt/shared/USAMS/Results/USAMS040317R.txt",
-                   skip = 4, comment.char = "=") %>%
+data2 <- readResfile("/mnt/shared/USAMS/Results/USAMS040317R.txt") %>%
   filter(Pos == 13) %>%
   mungeResfile() 
 
@@ -97,17 +179,26 @@ pres <- read.csv("USAMS040317Pressure.csv")
 pres$Run <- as.numeric(row.names(pres))
 
 # Join to run data
-data2 <- inner_join(data2, pres)
+data2 <- inner_join(data2, pres) %>%
+  mutate(flow = flowcalc(Bottle),
+         eff = hgis_eff(flow, he12C))
 
 # summarize
 d2.s <- data2 %>% group_by(Run, Bottle, Source) %>% summarize(le12C = mean(le12C),
                                               he12C = mean(he12C),
                                               C1412he = mean(X14.12he),
-                                              cor1412he = mean(cor1412he))
+                                              cor1412he = mean(cor1412he),
+                                              eff = mean(eff))
 ```
 
 ```{r}
-ggplot(d2.s, aes(Bottle, le12C)) + geom_point()
 ggplot(d2.s, aes(Bottle, he12C)) + geom_point()
+ggplot(d2.s, aes(Bottle, Source)) + geom_point()
+ggplot(d2.s, aes(Bottle, eff)) + geom_point()
+ggplot(d2.s, aes(Source, eff)) + geom_point()
+ggplot(d2.s, aes(he12C, cor1412he)) + geom_point()
 ```
+
+### Efficiency
+
 
