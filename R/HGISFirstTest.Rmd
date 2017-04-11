@@ -8,7 +8,7 @@ date: "03-28-2017"
 
 First tests of the USAMS SNICS-134 Hybrid gas ion source.
 
-```{r libraries}
+```{r libraries, warning=FALSE, message=FALSE}
 library(amstools)
 library(tidyverse)
 library(ggplot2)
@@ -32,7 +32,7 @@ Where $\Delta P$ is change in pressure (Pa ($\frac{kg}{m \cdot s^2}$)), $R$ is r
 Measured leak rate using Helium leak detector. Ran capillary to KF adapter flange. Pressures in kPa, leak rates in $\frac{Pa\cdot m^3}{s}$. Leak detector switched to gross leak mode between 150 kPa and 200 kPa.
 
 ```{r}
-ldflow <- read.csv("HeLeakCapillaryFlow.csv", skip = 3)
+ldflow <- read.csv("../Data/HeLeakCapillaryFlow.csv", skip = 3)
 
 # convert to sccm
 ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016,
@@ -106,8 +106,10 @@ data <- readResfile("/mnt/shared/USAMS/Results/USAMS032817R.txt") %>%
 
 For the first target, we turned up the gas supply pressure while measuring source current at the high energy FC. These currents are roughly equivalent to le12C.
 
+* TODO: Blank current subtraction
+
 ```{r}
-cur <- read.delim("1sttestcurrents.csv") %>%
+cur <- read.delim("../Data/1sttestcurrents.csv") %>%
   mutate(flow = flowcalc(regp),
          eff = hgis_eff(flow, he12c)) %>%
   filter(t > 5) 
@@ -175,7 +177,7 @@ for (i in 1:nrow(data2)) {
 data2$Run <- Run
 
 # Load pressure data
-pres <- read.csv("USAMS040317Pressure.csv")
+pres <- read.csv("../Data/USAMS040317Pressure.csv")
 pres$Run <- as.numeric(row.names(pres))
 
 # Join to run data
