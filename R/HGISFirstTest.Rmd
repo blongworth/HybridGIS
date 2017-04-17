@@ -196,7 +196,7 @@ Load and massage the data...
 ```{r}
 cur <- read.delim("../Data/1sttestcurrents.csv") %>%
   mutate(flow = flowcalc(regp, r, u, x),
-         eff = hgis_eff(flow, he12c)) %>%
+         eff = hgis_eff(flow, he12c, cs = 1)) %>% # cs 1 to estimate LE current
   filter(t > 5) 
 ```
 
@@ -299,12 +299,15 @@ pres$Run <- as.numeric(row.names(pres))
 # Join to run data
 data2 <- inner_join(data2, pres) %>%
   mutate(flow = flowcalc(Bottle, r, u, x),
-         eff = hgis_eff(flow, he12C))
+         eff = hgis_eff(flow, he12C, cs = 1)) # cs 1 to estimate LE current
 
 # summarize
 d2.s <- data2 %>% group_by(Run, Bottle, Source) %>% summarize(le12C = mean(le12C),
                                               he12C = mean(he12C),
+                                              counts = sum(CntTotGT),
+                                              interr = 1/sqrt(counts),
                                               C1412he = mean(X14.12he),
+                                              ferr = interr * C1412he,
                                               cor1412he = mean(cor1412he),
                                               eff = mean(eff))
 ```
@@ -325,7 +328,8 @@ ggplot(d2.s, aes(Bottle, he12C)) +
 #### Ratio vs current
 
 ```{r, message = FALSE, warning = FALSE}
-ggplot(d2.s, aes(he12C, cor1412he)) + 
+ggplot(d2.s, aes(he12C, C1412he)) + 
+  geom_linerange(aes(ymin = C1412he - ferr, ymax = C1412he + ferr)) +
   geom_smooth() +
   geom_point() 
 ```
