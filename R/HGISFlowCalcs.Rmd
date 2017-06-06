@@ -1,0 +1,64 @@
+---
+title: "HGIS flow calcs"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+```{r}
+source('~/Projects/HybridGIS/R/HGISFunctions.R')
+```
+
+# Calculated Flow rates
+
+To model laminar flow in a capillary, Pouiselle's equation is used.
+
+$$
+Q = \frac{\Delta P \pi R^4}{8 \mu \Delta x}
+$$
+
+Where $\Delta P$ is change in pressure (Pa ($\frac{kg}{m \cdot s^2}$)), $R$ is
+radius of pipe (m), $\mu$ is dynamic viscosity ( $P \cdot s$ ($\frac{kg}{s
+\cdot m}$)), and $\Delta x$ is the length of the pipe (m). Q is in
+$\frac{m^3}{s}$
+
+  The functions loaded above calculate flow using this equation and convert base
+units to more convenient flow in $\frac{\mu L}{min}$ and pressure in kPa.
+
+
+Initial tests used a 0.050mm x 8.2m deactivated silica caplillary. For this
+capillary, parameters for Pouiselle's equation are as follows:
+
+```{r}
+r <- 2.5E-5
+u <- 1.49E-5
+x <- 8.2
+flowcalc(300, r, u, x)
+```
+
+Calculate flow for Xu et al 2006...
+
+```{r}
+flowcalc(1.500, 12.5E-5, u, 1.25)
+
+```
+Calculate flow for ETH...
+
+```{r}
+flowcalc(15.6, 3E-5, u, 2)
+flowcalc(31.3, 3E-5, u, 2)
+
+```
+Calculate flow for CAMS...
+
+```{r}
+flowcalc(42, 7.5E-5, u, 6)
+
+```
+Calculate flow for Oxford...
+
+```{r}
+flowcalc(200, 3E-5, u, 1.25)
+
+```
