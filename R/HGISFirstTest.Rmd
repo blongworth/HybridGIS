@@ -302,7 +302,7 @@ data2 <- inner_join(data2, pres) %>%
          eff = hgis_eff(flow, he12C, cs = 1)) # cs 1 to estimate LE current
 
 # summarize
-d2.s <- data2 %>% group_by(Run, Bottle, Source) %>% summarize(le12C = mean(le12C),
+d2.s <- data2 %>% group_by(Run, Bottle, Source, flow) %>% summarize(le12C = mean(le12C),
                                               he12C = mean(he12C),
                                               counts = sum(CntTotGT),
                                               interr = 1/sqrt(counts),
@@ -312,16 +312,31 @@ d2.s <- data2 %>% group_by(Run, Bottle, Source) %>% summarize(le12C = mean(le12C
                                               eff = mean(eff))
 ```
 
+#### Gas flow vs source pressure
+
+```{r}
+ggplot(d2.s, aes(Bottle, Source)) + 
+  geom_smooth() +
+  geom_point() 
+ggplot(d2.s, aes(flow, Source)) + 
+  geom_smooth() +
+  geom_point() 
+```
 
 #### Currents
 
 ```{r, message = FALSE, warning = FALSE}
-ggplot(d2.s, aes(Bottle, Source)) + 
-  geom_smooth() +
-  geom_point() 
 ggplot(d2.s, aes(Bottle, he12C)) +
   geom_smooth() +
   geom_point() 
+filter(d2.s, flow > 0) %>%
+  ggplot(aes(flow, le12C)) +
+  geom_smooth() +
+  geom_point() +
+  labs(x = "CO2 flow rate (uL/min)", y = "12C- current (uA)") +
+  scale_y_reverse() +
+  ylim(0,-10) +
+  xlim(0,15.5)
 ```
 
 
@@ -344,6 +359,11 @@ ggplot(d2.s, aes(Bottle, eff)) +
 ggplot(d2.s, aes(Source, eff)) + 
   geom_smooth() +
   geom_point() 
+ggplot(d2.s, aes(flow, eff*100)) + 
+  geom_smooth() +
+  geom_point() +
+  labs(x = "CO2 flow rate (uL/min)", y = "Measurement efficiency (%)") +
+  xlim(0,15.5)
 ```
 
 
