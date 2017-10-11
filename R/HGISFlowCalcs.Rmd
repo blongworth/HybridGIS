@@ -26,6 +26,7 @@ $\frac{m^3}{s}$
   The functions loaded above calculate flow using this equation and convert base
 units to more convenient flow in $\frac{\mu L}{min}$ and pressure in kPa.
 
+## Initial NOSAMS parameters
 
 Initial tests used a 0.050mm x 8.2m deactivated silica caplillary. For this
 capillary, parameters for Pouiselle's equation are as follows:
@@ -36,6 +37,8 @@ u <- 1.49E-5
 x <- 8.2
 flowcalc(300, r, u, x)
 ```
+
+## Parameters for published hybrid GIS systems
 
 Calculate flow for Xu et al 2006...
 
@@ -62,3 +65,38 @@ Calculate flow for Oxford...
 flowcalc(200, 3E-5, u, 1.25)
 
 ```
+
+## Parameters for next USAMS tests
+
+Short capillary at 1 atm
+
+```{r}
+r <- 2.5E-5
+u <- 1.49E-5
+x <- 3
+flowcalc(100, r, u, x)
+```
+
+Low pressure 15 mbar
+```{r}
+r <- 2.5E-5
+u <- 1.49E-5
+x <- 1.0
+flowcalc(1.5, r, u, x)
+```
+Medium pressure 150mbar
+```{r}
+r <- 2.5E-5
+u <- 1.49E-5
+x <- 1.5
+flowcalc(15, r, u, x)
+```
+
+Medium pressure 150mbar 100um x 1.58m PEEK capillary
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 1.58
+flowcalc(1.5, r, u, x)
+```
+
