@@ -1,0 +1,57 @@
+---
+title: "Dual Bellows Tests"
+output: html_notebook
+---
+
+# Dual Bellows tests
+```{r}
+library(tidyverse)
+source('~/Projects/HybridGIS/R/HGISFunctions.R')
+```
+
+## Leak checker flow rates
+
+Tests on 07/31/2017. Used dual bellows sample inlet block. Attached capillary to sample-mass spec outlet (valve SM). Loaded Helium at SI, measured pressure with inlet gauge. Used two PEEK capillaries- 65um and 100um ID x 158cm long.
+
+### Leak checker Data
+
+Presures in mBar, flows in mbar l/s.
+```{r}
+r <- c(5E-5, 5E-5, 5E-5, 3.3E-5, 3.3E-5, 3.3E-5)
+press <- c(18, 30, 60, 18, 60, 103)
+flow <- c(6.3E-7, 3.8E-6, 1.8E-5, 5.7E-7, 8.8E-6, 2.5E-5)
+data <- data.frame(r, press, flow) 
+
+ggplot(data, aes(press, flow, color = r)) + geom_line() + geom_point()
+```
+
+
+## Source flow tests
+
+Tests on 10/10/2017. Same conditions as above. Inlet to source, measured source pressure with source iso GV closed. No discharge observed for any capillary.
+
+### Source pressure vs supply pressure
+```{r}
+r <- 5E-5
+press <- c(10, 25, 55, 112, 205, 312, 408, 500, 607, 702, 802, 1000)
+press <- press/10
+source <- c(7.1E-8, 7.2E-8, 7.6E-8, 8.5E-8, 1.6E-7, 6.2E-7, 1.2E-6, 1.9E-6, 2.8E-6, 3.8E-6, 4.8E-6, 7.3E-6)
+
+r <- 5E-5
+u <- 1.49E-5
+x <- 1.58
+flow <- flowcalc(press, r, u, x)
+
+data <- data.frame(r, press, source, flow) 
+```
+
+```{r}
+ggplot(data, aes(press, source)) + geom_line() + geom_point()
+```
+
+Calculated flow vs source pressure. Something fishy here.
+
+```{r}
+ggplot(data, aes(flow, source)) + geom_line() + geom_point()
+```
+
