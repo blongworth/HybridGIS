@@ -1,6 +1,8 @@
 ---
 title: "Dual Bellows Tests"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 # Dual Bellows tests
@@ -19,12 +21,47 @@ Presures in mBar, flows in mbar l/s.
 ```{r}
 r <- c(5E-5, 5E-5, 5E-5, 3.3E-5, 3.3E-5, 3.3E-5)
 press <- c(18, 30, 60, 18, 60, 103)
-flow <- c(6.3E-7, 3.8E-6, 1.8E-5, 5.7E-7, 8.8E-6, 2.5E-5)
-data <- data.frame(r, press, flow) 
+leakrate <- c(6.3E-7, 3.8E-6, 1.8E-5, 5.7E-7, 8.8E-6, 2.5E-5)
+data <- data.frame(r, press, leakrate) 
 
-ggplot(data, aes(press, flow, color = r)) + geom_line() + geom_point()
+#convert leak rate to Pa m3/s
+data <- mutate(data, 
+               leakrate = leakrate * 100 / 1000, # convert to Pa m3 s-1
+                sccm = leakrate / 0.0016, # convert to sccm
+                 co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
+                 flow = co2sccm * 1E3, # convert to ul/m
+                 press = press / 10) # convert to kPa
+               
+ggplot(data, aes(press, flow, color = as.factor(r))) + geom_line() + geom_point()
 ```
 
+Second test of 100um capillary 17-10-2017.
+```{r}
+r <- 5E-5
+press <- c(0, 35, 50, 75, 100, 140, 159, 190, 222, 20, 8, 0)
+
+#press <- press/10 # convert to kPa
+leakrate <- c(3.6E-11, 7.2E-7, 1.5E-6, 3.1E-6, 5.1E-6, 9.4E-6, 1.2E-5, 1.5E-5, 2.2E-5, 2.2E-7, 1.5E-8,1.4E-9)
+  
+data <- data.frame(r, press, leakrate) 
+
+data <- mutate(data,
+                sccm = leakrate / 0.0016, # convert to sccm
+                 co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
+                 flow = co2sccm * 1E3, # convert to ul/m
+                 press = press / 10,
+                 calflow = flowcalc(press, 5E-5, 1.49E-5, 1.58),
+                 corcalflow = flowcalc(press, 2.5E-5, 1.49E-5, 1.58) ) # convert to kPa
+
+ggplot(data, aes(press, flow)) + geom_line() + geom_point()
+```
+
+Looks like calculated flows don't match up with measured. Is diameter of capillary wrong? Using a diameter of 50um in poiselle's gives better numbers...
+
+```{r}
+ggplot(data, aes(flow, calflow)) + geom_line() + geom_point()
+ggplot(data, aes(flow, corcalflow)) + geom_line() + geom_point()
+```
 
 ## Source flow tests
 
@@ -34,20 +71,17 @@ Tests on 10/10/2017. Same conditions as above. Inlet to source, measured source 
 ```{r}
 r <- 5E-5
 press <- c(10, 25, 55, 112, 205, 312, 408, 500, 607, 702, 802, 1000)
-press <- press/10
 source <- c(7.1E-8, 7.2E-8, 7.6E-8, 8.5E-8, 1.6E-7, 6.2E-7, 1.2E-6, 1.9E-6, 2.8E-6, 3.8E-6, 4.8E-6, 7.3E-6)
+data <- data.frame(r, press, source) 
 
-r <- 5E-5
-u <- 1.49E-5
-x <- 1.58
-flow <- flowcalc(press, r, u, x)
+data <- mutate(data,
+               press = press/10,
+               flow = flowcalc(press, 5E-5, 1.49E-5, 1.58)
+)
 
-data <- data.frame(r, press, source, flow) 
-```
-
-```{r}
 ggplot(data, aes(press, source)) + geom_line() + geom_point()
 ```
+
 
 Calculated flow vs source pressure. Something fishy here.
 
@@ -55,3 +89,8 @@ Calculated flow vs source pressure. Something fishy here.
 ggplot(data, aes(flow, source)) + geom_line() + geom_point()
 ```
 
+If the diameter of the capillary is adjusted to 50um, things look more realistic...
+```{r}
+data <- mutate(data, flow = flowcalc(press, 2.5E-5, 1.49E-5, 1.58))
+ggplot(data, aes(flow, source)) + geom_line() + geom_point()
+```
