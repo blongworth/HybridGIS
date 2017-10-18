@@ -298,7 +298,8 @@ pres$Run <- as.numeric(row.names(pres))
 
 # Join to run data
 data2 <- inner_join(data2, pres) %>%
-  mutate(flow = flowcalc(Bottle, r, u, x),
+  mutate(Source = Source * 1E-7, # I think the source pressures were to the -7, but unsure...
+         flow = flowcalc(Bottle, r, u, x),
          eff = hgis_eff(flow, he12C, cs = 1)) # cs 1 to estimate LE current
 
 # summarize
