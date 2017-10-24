@@ -101,12 +101,19 @@ bflow <- read.csv("../Data/bubbleflow.csv") %>%
   mutate(heflow = volume/time,
          flow = heflow * 1.49E-5/1.90E-5, # co2/He viscosity
          pressure = pressure - 14.7, # subract 1 Atm for delta P
-         pressure = pressure * 6.8948) # convert to kPa
+         pressure = pressure * 6.8948, # convert psi to kPa
+         calcflow = flowcalc(pressure, r, u, x)) # calculate flow with poiselles 
 
 ggplot(bflow, aes(pressure, flow)) + 
   geom_point() +
   geom_line() +
-  xlim(0,400) + ylim(0,80)
+  xlim(0,400) + ylim(0,80) +
+  ggtitle("Flow vs pressure")
+
+ggplot(bflow, aes(calcflow, flow)) + 
+  geom_point() +
+  geom_line() +
+  ggtitle("Measured vs predicted flow")
 ```
 
 
@@ -122,11 +129,19 @@ ldflow <- read.csv("../Data/HeLeakCapillaryFlow.csv", skip = 3)
 # convert to sccm
 ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016, # convert to sccm
                  co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
-                 flow = co2sccm * 1E3) # convert to ul/m
+                 flow = co2sccm * 1E3, # convert to ul/m
+                 calcflow = flowcalc(Regulator, r, u, x)) # calculate flow with poiselles 
 
 ggplot(ldflow, aes(Regulator, flow)) + 
   geom_point() +
-  geom_line()
+  geom_line() +
+  ggtitle("Flow vs pressure")
+
+ggplot(ldflow, aes(calcflow, flow)) + 
+  geom_point() +
+  geom_line() +
+  ggtitle("Measured vs predicted flow")
+
 ```
 
 
