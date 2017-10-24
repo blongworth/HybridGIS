@@ -13,11 +13,13 @@ source('~/Projects/HybridGIS/R/HGISFunctions.R')
 
 ## Leak checker flow rates
 
+
+### First test
+
 Tests on 07/31/2017. Used dual bellows sample inlet block. Attached capillary to sample-mass spec outlet (valve SM). Loaded Helium at SI, measured pressure with inlet gauge. Used two PEEK capillaries- 65um and 100um ID x 158cm long.
 
-### Leak checker Data
-
 Presures in mBar, flows in mbar l/s.
+
 ```{r}
 r <- c(5E-5, 5E-5, 5E-5, 3.3E-5, 3.3E-5, 3.3E-5)
 press <- c(18, 30, 60, 18, 60, 103)
@@ -32,10 +34,16 @@ data <- mutate(data,
                  flow = co2sccm * 1E3, # convert to ul/m
                  press = press / 10) # convert to kPa
                
-ggplot(data, aes(press, flow, color = as.factor(r))) + geom_line() + geom_point()
+ggplot(data, aes(press, flow, color = as.factor(r))) + 
+  geom_line() + 
+  geom_point()
 ```
 
+
+### 100um capillary, second test
+
 Second test of 100um capillary 17-10-2017.
+
 ```{r}
 r <- 5E-5
 press <- c(0, 35, 50, 75, 100, 140, 159, 190, 222, 20, 8, 0)
@@ -63,11 +71,40 @@ ggplot(data, aes(flow, calflow)) + geom_line() + geom_point()
 ggplot(data, aes(flow, corcalflow)) + geom_line() + geom_point()
 ```
 
+### Glass capillary
+
+Leak checker test of 100um x 178mm glass capillary 20-10-2017.
+
+```{r}
+r <- 5E-5
+press <- c(0, 32, 64, 80, 110, 121, 150, 15, 10, 4)
+leakrate <- c(2E-9, 1.1E-6, 2.8E-6, 3.7E-6, 6.1E-6, 7.5E-6, 1.1E-5, 4.5E-7, 2.7E-7, 8.5E-8)
+  
+data <- data.frame(r, press, leakrate) 
+
+data <- mutate(data,
+                sccm = leakrate / 0.0016, # convert to sccm
+                 co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
+                 flow = co2sccm * 1E3, # convert to ul/m
+                 press = press / 10, # convert to kPa
+                 calflow = flowcalc(press, 5E-5, 1.49E-5, 1.78))
+
+ggplot(data, aes(press, flow)) + 
+  geom_line() + 
+  geom_point() + 
+  ggtitle("100um Glass Capillary, flow vs pressure")
+ggplot(data, aes(calflow, flow)) + 
+  geom_line() + 
+  geom_point() + 
+  ggtitle("100um Glass Capillary, measured vs predicted flow")
+```
+
 ## Source flow tests
 
 Tests on 10/10/2017. Same conditions as above. Inlet to source, measured source pressure with source iso GV closed. No discharge observed for any capillary.
 
 ### Source pressure vs supply pressure
+
 ```{r}
 r <- 5E-5
 press <- c(10, 25, 55, 112, 205, 312, 408, 500, 607, 702, 802, 1000)
@@ -75,7 +112,7 @@ source <- c(7.1E-8, 7.2E-8, 7.6E-8, 8.5E-8, 1.6E-7, 6.2E-7, 1.2E-6, 1.9E-6, 2.8E
 data <- data.frame(r, press, source) 
 
 data <- mutate(data,
-               press = press/10,
+               press = press/10, # convert to kPa
                flow = flowcalc(press, 5E-5, 1.49E-5, 1.58)
 )
 
