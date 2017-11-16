@@ -131,3 +131,14 @@ If the diameter of the capillary is adjusted to 50um, things look more realistic
 data <- mutate(data, flow = flowcalc(press, 2.5E-5, 1.49E-5, 1.58))
 ggplot(data, aes(flow, source)) + geom_line() + geom_point()
 ```
+```{r}
+lpdata <- read.csv("../Data/14Nov2017LPtest.csv", skip = 4) %>%
+  mutate(supply = supply / 10,
+         source = source * 1E-7,
+         flow = flowcalc(supply, 2E-5, 1.49E-5, 1.58))
+         
+ggplot(lpdata, aes(flow, source)) + geom_smooth() + geom_point()
+ggplot(lpdata, aes(flow, current)) + geom_smooth() + geom_point()
+         
+```
+
