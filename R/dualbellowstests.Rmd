@@ -5,7 +5,8 @@ output:
     df_print: paged
 ---
 
-# Dual Bellows tests
+Load libraries and functions
+
 ```{r}
 library(tidyverse)
 source('~/Projects/HybridGIS/R/HGISFunctions.R')
@@ -13,12 +14,13 @@ source('~/Projects/HybridGIS/R/HGISFunctions.R')
 
 ## Leak checker flow rates
 
+Tested flow rates using helium leak checker.
 
-### First test
+### First test 65 and 100um PEEK capillaries
 
 Tests on 07/31/2017. Used dual bellows sample inlet block. Attached capillary to sample-mass spec outlet (valve SM). Loaded Helium at SI, measured pressure with inlet gauge. Used two PEEK capillaries- 65um and 100um ID x 158cm long.
 
-Presures in mBar, flows in mbar l/s.
+Presures in mBar, leak rate in mbar l/s.
 
 ```{r}
 r <- c(5E-5, 5E-5, 5E-5, 3.3E-5, 3.3E-5, 3.3E-5)
@@ -131,14 +133,24 @@ If the diameter of the capillary is adjusted to 50um, things look more realistic
 data <- mutate(data, flow = flowcalc(press, 2.5E-5, 1.49E-5, 1.58))
 ggplot(data, aes(flow, source)) + geom_line() + geom_point()
 ```
+
+### Beam tests 11/14/17
+
+Used black PEEK capillary. 
 ```{r}
 lpdata <- read.csv("../Data/14Nov2017LPtest.csv", skip = 4) %>%
   mutate(supply = supply / 10,
          source = source * 1E-7,
          flow = flowcalc(supply, 2E-5, 1.49E-5, 1.58))
          
-ggplot(lpdata, aes(flow, source)) + geom_smooth() + geom_point()
-ggplot(lpdata, aes(flow, current)) + geom_smooth() + geom_point()
+ggplot(lpdata, aes(supply, source)) + 
+  geom_smooth() + geom_point() +
+  labs(x = "Inlet pressure (kPa)", y = "Source pressure (Pa)")
+ggplot(lpdata, aes(flow, source)) + 
+  geom_smooth() + geom_point() +
+  labs(x = "Flow (ul/min)", y = "Source pressure (Pa)")
+ggplot(lpdata, aes(flow, current)) + geom_smooth() + geom_point() +
+  labs(x = "Flow (ul/min)", y = "Source current (uA)")
          
 ```
 
