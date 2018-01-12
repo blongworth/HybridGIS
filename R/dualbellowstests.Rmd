@@ -1,6 +1,7 @@
 ---
 title: "Dual Bellows Tests"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -143,6 +144,9 @@ lpdata <- read.csv("../Data/14Nov2017LPtest.csv", skip = 4) %>%
          source = source * 1E-7,
          flow = flowcalc(supply, 2E-5, 1.49E-5, 1.58))
          
+ggplot(lpdata, aes(supply, current)) + 
+  geom_smooth() + geom_point() +
+  labs(x = "Inlet pressure (kPa)", y = "C12 Current")
 ggplot(lpdata, aes(supply, source)) + 
   geom_smooth() + geom_point() +
   labs(x = "Inlet pressure (kPa)", y = "Source pressure (Pa)")
