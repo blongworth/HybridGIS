@@ -1,0 +1,64 @@
+---
+title: "Open Split Tests"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+Load libraries and functions
+
+```{r}
+library(tidyverse)
+source('~/Projects/HybridGIS/R/HGISFunctions.R')
+```
+
+Development notes for using the HGIS with an open split. Intention is to use
+with gasbench for carbonates and/or large co2 samples.
+
+## Capillary parameters
+
+Calculate ideal capillary to provide ~7.5uL/min at atmospheric pressure.
+
+### Short capillary at 1 atm
+
+40um capillary
+
+```{r}
+r <- 2E-5
+u <- 1.49E-5
+x <- 3.5
+flowcalc(100, r, u, x)
+```
+```{r}
+r <- 2E-5
+u <- 1.49E-5
+x <- 2
+flowcalc(100, r, u, x)
+```
+50um capillary
+```{r}
+r <- 2.5E-5
+u <- 1.49E-5
+x <- 3
+flowcalc(100, r, u, x)
+```
+```{r}
+r <- 2.5E-5
+u <- 1.49E-5
+x <- 7
+flowcalc(100, r, u, x)
+```
+## First tests
+
+DATE?
+
+Tried a bunch of capillary combinations. Other than initial pressure burst when
+opening or closing HGIS valve, couldn't see any source pressure changes or beam
+current. We believe the source end of the stainless capillary was clogged by
+cesium residue. 
+
+Cleaned capillary end at next source cleaning, first with kimwipe and water,
+then with isopropanol. Lots of black crud. Confirmed open passage by blowing N2
+through capillary into cup of isopropanol to observe bubbles.
+
