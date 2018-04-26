@@ -68,35 +68,68 @@ flowcalc(200, 3E-5, u, 1.25)
 
 ## Parameters for next USAMS tests
 
-Short capillary at 1 atm
+### Short capillary at 1 atm
 
+40um capillary
+
+```{r}
+r <- 2E-5
+u <- 1.49E-5
+x <- 3.5
+flowcalc(100, r, u, x)
+```
+```{r}
+r <- 2E-5
+u <- 1.49E-5
+x <- 2
+flowcalc(100, r, u, x)
+```
+50um capillary
 ```{r}
 r <- 2.5E-5
 u <- 1.49E-5
 x <- 3
 flowcalc(100, r, u, x)
 ```
-
-Low pressure 15 mbar
 ```{r}
 r <- 2.5E-5
 u <- 1.49E-5
-x <- 1.0
-flowcalc(1.5, r, u, x)
+x <- 7
+flowcalc(100, r, u, x)
 ```
-Medium pressure 150mbar
+
+### Low pressure 15 mbar
+
+100um capillary
+
 ```{r}
-r <- 2.5E-5
+r <- 5E-5
 u <- 1.49E-5
-x <- 1.5
+x <- 2.0
+flowcalc(2.5, r, u, x)
+```
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 3.0
+flowcalc(10, r, u, x)
+```
+### Medium pressure 150mbar
+
+75um capillary
+
+```{r}
+r <- 3.75E-5
+u <- 1.49E-5
+x <- 4
 flowcalc(15, r, u, x)
 ```
 
 Medium pressure 150mbar 100um x 1.58m PEEK capillary
 ```{r}
-r <- 5E-5
+r <- 2.5E-5
 u <- 1.49E-5
-x <- 1.58
-flowcalc(1.5, r, u, x)
+x <- 2
+flowcalc(50, r, u, x)
 ```
 
