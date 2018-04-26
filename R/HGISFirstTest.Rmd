@@ -1,8 +1,9 @@
 ---
 title: "First Hybrid GIS Tests"
 output:
-  html_document: default
+  pdf_document: default
   html_notebook: default
+  html_document: default
 date: "03-28-2017"
 ---
 
@@ -193,7 +194,7 @@ Two days of testing to date. Same wheel both days. Wheel had 5 AA, 4 OX-I, and
 ## USAMS032817
 
 ```{r}
-data <- readResfile("/mnt/shared/USAMS/Results/USAMS032817R.txt") %>%
+data <- readResfile("/mnt/shared/USAMS/Results/2017 Results/USAMS032817R.txt") %>%
   mungeResfile() 
 ```
 
@@ -292,7 +293,7 @@ ratio and current. The gas used was the modern standard, but the flask may not
 have been fully flushed.
 
 ```{r, message = FALSE}
-data2 <- readResfile("/mnt/shared/USAMS/Results/USAMS040317R.txt") %>%
+data2 <- readResfile("/mnt/shared/USAMS/Results/2017 Results/USAMS040317R.txt") %>%
   filter(Pos == 13) %>%
   mungeResfile() 
 
