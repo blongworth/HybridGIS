@@ -155,6 +155,53 @@ ggplot(lpdata, aes(flow, source)) +
   labs(x = "Flow (ul/min)", y = "Source pressure (Pa)")
 ggplot(lpdata, aes(flow, current)) + geom_smooth() + geom_point() +
   labs(x = "Flow (ul/min)", y = "Source current (uA)")
+ggplot(lpdata, aes(source, current)) + geom_smooth(span = 1) + geom_point() +
+  labs(x = "Source pressure (Torr)", y = "Source current (uA)")
          
 ```
 
+## Testing bellows compression
+
+Wired up stepper drives. Tested currents and flows with black PEEK capillary
+(nominally 100um id). Source works fine after cleaning clog from delivery tube
+at last source cleaning. Ran scan of inlet pressures, saw best currents at
+~600mbar. Reduced pressure to 300mbar, closed SF, used bellows to return flow
+to optimum.
+
+inletp in mbar, sourcep in Torr, current in uA.
+
+```{r}
+# load data
+beldat <- read_csv("../Data/bellowsApr2518.csv")
+beldat
+```
+
+```{r}
+belopen <- beldat %>% filter(bellows == 0)
+
+ggplot(belopen, aes(inletp, sourcep)) + 
+    geom_point() + 
+    geom_line()
+```
+
+Inlet pressure/source pressure relationship is about the same as last time. Still way more than calculated inlet pressure for a given source pressure. Capillary pinching at the swagelok connection or bad calculations?
+
+```{r}
+ggplot(belopen, aes(sourcep, c12cur)) +
+  geom_line() + geom_point() +
+  labs(x = "Source pressure (Torr)", y = "Source current (uA)")
+```
+
+Looks like we have about the same source pressure/current optima as before.
+
+```{r}
+
+bellows <- beldat %>% filter(is.na(inletp) | inletp == 300)
+
+
+ggplot(bellows, aes(bellows, c12cur)) +
+  geom_smooth(method = "lm") + geom_point() +
+  labs(x = "Bellows position (0-120k)", y = "Source current (uA)")
+```
+
+As expected, source pressure and current follow bellows position, such that bellows position is proportional to inlet pressure.
