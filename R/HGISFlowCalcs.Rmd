@@ -125,11 +125,34 @@ x <- 4
 flowcalc(15, r, u, x)
 ```
 
+100um capillary
+
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 2.0
+flowcalc(5, r, u, x)
+```
 Medium pressure 150mbar 100um x 1.58m PEEK capillary
 ```{r}
-r <- 2.5E-5
+r <- 5E-5
 u <- 1.49E-5
-x <- 2
-flowcalc(50, r, u, x)
+x <- 1.58
+flowcalc(15, r, u, x)
 ```
+
+Actual performance of "100um"" x 1.58m PEEK capillary *IF* flow is ~10uL/min. Looks like
+true diameter after crimping is around 40um.
+
+```{r}
+r <- 2.0E-5
+u <- 1.49E-5
+x <- 1.58
+flowcalc(60, r, u, x)
+```
+
+
+# CO2 quantities
+
+Calculate CO2 needed for an analysis at given supply pressure.
 
