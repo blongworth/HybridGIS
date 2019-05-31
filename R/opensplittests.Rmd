@@ -1,16 +1,19 @@
 ---
 title: "Open Split Tests"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 Load libraries and functions
 
 ```{r}
 library(tidyverse)
-source('~/Projects/HybridGIS/R/HGISFunctions.R')
+library(ggplot2)
+library(amstools)
+library(here)
+source(here('/R/HGISFunctions.R'))
 ```
 
 Development notes for using the HGIS with an open split. Intention is to use
@@ -49,9 +52,10 @@ u <- 1.49E-5
 x <- 7
 flowcalc(100, r, u, x)
 ```
+
 ## First tests
 
-DATE?
+### DATE?
 
 Tried a bunch of capillary combinations. Other than initial pressure burst when
 opening or closing HGIS valve, couldn't see any source pressure changes or beam
@@ -62,3 +66,102 @@ Cleaned capillary end at next source cleaning, first with kimwipe and water,
 then with isopropanol. Lots of black crud. Confirmed open passage by blowing N2
 through capillary into cup of isopropanol to observe bubbles.
 
+### May 23, 2018
+
+Tried 3m of 50um glass capillary. Insulated from source to cage with
+teflon tubing as outer jacket. No problems with sparks.
+
+Low currents, even when cutting capillary down to 2m. Either steel
+capillary is partially clogged or tip is not making good seal with target.
+
+### May 31, 2018 - He Dilution
+
+Open split set up with helium dilution. Using 100um glass capillary. ~50cm
+source to bulkhead with teflon jacket, 285cm bulkhead to open split. 
+
+Table: Source pressures
+
+Condition     Torr  
+---------     ---- 
+base w/cryo   1E-7  
+base w/turbo  4E-7  
+capillary     36E-7 
+
+
+#### Dilution and current
+
+Flow and current tests with varying capillary and dilution. Flows in mL/min,
+pressure in Torr, current in uA. Replumbed helium to panel open split with
+needle valve partway through to better control flow. Live CO2 set to 10mL/min.
+
+```{r}
+co2 <- c(18, 18, 18, 18, 18, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10)
+caplen <- c(322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 230, 230, 177, 177)
+helium <- c(0, 100, 200, 300, 500, 0, 10, 20, 30, 50, 100, 200, 100, 200, 100, 50)
+sourcevac <- c(7.5E-6,1.5E-6,1E-6,8.5E-7,8.4E-7,7.5E-7, 3.3E-6, 2.3E-6, 1.9E-6, 1.5E-6, 1E-6, 9.3E-7, 1.1E-6, 1.4E-6, 1.7E-6, 2.3E-6)
+current <- c(7, 4, 3, 2, 2, 6.7, 5, 4, 3.5, 2.6, 1.6, 1.3, 1.3, 1.8, 2.3, 3.6)
+
+osdil <- data.frame(co2, caplen, helium, sourcevac, current)
+write.csv(osdil, here("Data/dillution.csv"))
+osdil <- mutate(osdil, ratio = helium/co2)
+osdil
+```
+
+```{r}
+filter(osdil, co2 == 18) %>%
+  ggplot(aes(ratio, current)) +
+    geom_line()
+filter(osdil, co2 == 10, caplen == 322) %>%
+  ggplot(aes(ratio, current)) +
+    geom_line()
+```
+
+
+#### Test Acquisitions
+
+Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, dilluted
+live, diluted dead.
+
+```{r}
+# Load data
+
+data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS053018R.txt")
+data <- mungeResfile(data)
+sdata <- data %>% 
+  filter(Sample.Name != "Ceylon") %>%
+  group_by(Sample.Name) %>%
+  summarise(mean = mean(cor1412he),
+            sd = sd(cor1412he),
+            se = se(cor1412he),
+            psd = sd(cor1412he)/mean,
+            pse = se/mean,
+            interr = 1/sqrt(sum(CntTotGT)),
+            N = n())
+sdata
+```
+
+Normalize!
+
+```{r}
+sdata %>% mutate(normfm = mean/9.8669966 * 1.0398)
+```
+
+```{r}
+ospure <- filter(data, Sample.Name == "LiveGas")
+
+ggplot(ospure, aes(ts, cor1412he)) + geom_point()
+summary(ospure$cor1412he)
+
+mean(ospure$cor1412he)
+sd(ospure$cor1412he)
+```
+
+Load pos 7 (new target). Initial current 20uA (lots of LE13C - hydrides).
+Down to 2uA in 2 min. 10mL/min of pure modern CO2 into open split.
+Acquired 60 x 30s blocks.
+
+PLOT
+
+```{r}
+
+```
