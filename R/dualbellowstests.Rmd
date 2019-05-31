@@ -10,6 +10,7 @@ Load libraries and functions
 
 ```{r}
 library(tidyverse)
+library(amstools)
 source('~/Projects/HybridGIS/R/HGISFunctions.R')
 ```
 
@@ -160,7 +161,7 @@ ggplot(lpdata, aes(source, current)) + geom_smooth(span = 1) + geom_point() +
          
 ```
 
-## Testing bellows compression
+## 04/25/2018 - Testing bellows compression
 
 Wired up stepper drives. Tested currents and flows with black PEEK capillary
 (nominally 100um id). Source works fine after cleaning clog from delivery tube
@@ -186,6 +187,8 @@ ggplot(belopen, aes(inletp, sourcep)) +
 
 Inlet pressure/source pressure relationship is about the same as last time. Still way more than calculated inlet pressure for a given source pressure. Capillary pinching at the swagelok connection or bad calculations?
 
+Based on later alignment testing, flows for good current are reduced by about 3x with better alignment of delivery arm with target.
+
 ```{r}
 ggplot(belopen, aes(sourcep, c12cur)) +
   geom_line() + geom_point() +
@@ -205,3 +208,127 @@ ggplot(bellows, aes(bellows, c12cur)) +
 ```
 
 As expected, source pressure and current follow bellows position, such that bellows position is proportional to inlet pressure.
+
+## 05/23/2018 - Bellows with test samples
+
+Initially tried 2m x 100um glass capillary. There were two sparks with two different capillaries. Both sparks broke capillary at what is presumably spark exit point. Later open split tests with glass capillaries did not have sparking issue. Three differences with open split: 
+
+1. Pressure. Open split should be at higher pressure along cap length.
+2. Open split capillary is terminated in grounded SS bulkhead connector at cage.
+3. A teflon jacket was added to the capillary inside the cage.
+
+
+Load data from tests & runs
+
+Ran OX-I's and OX-II's from bellows end archive tubes. All ~100umol. 
+
+4 samples:
+OX-I GS-9394 Pos 15
+OX-I?
+OX-II GS-10051 Pos 17
+C-1 HY-31410 Pos 18
+
+```{r}
+
+data <- amstools::readResfile("/mnt/shared/USAMS/Results/USAMS052318RHIGS.txt") %>% mungeResfile()
+
+sdata <- data %>% group_by(Sample.Name) %>%
+  summarise(mean = mean(cor1412he),
+            sd = sd(cor1412he),
+            se = se(cor1412he),
+            psd = sd(cor1412he)/mean,
+            pse = se/mean,
+            interr = 1/sqrt(sum(CntTotGT)),
+            N = n())
+sdata
+```
+
+Normalize!
+
+```{r}
+sdata %>% mutate(normfm = mean/9.7150433 * 1.0398)
+```
+
+```{r}
+p <- ggplot(data, aes(ts, X14.12he, group=Sample.Name))
+
+p + geom_point()
+p + geom_boxplot()
+```
+```{r}
+
+```
+
+## 05/30/2018 - Helium Dilution tests
+
+Cleaned and reloaded sample wheel:
+2x ceylon, 2x ox-I, 8 gas cathodes.
+
+Added needle valve for UHP helium to inlet. Using turbopump instead of cryo. Base pressures are about 1E-6 initially, 6E-7 after a few hours, and 4E-7 overnight. Cryo base pressures are around 1E-7.
+
+Basic procedure:
+
+1. Admit sample to inlet, measure pressure.
+2. Freeze sample to CF.
+3. Admit He to inlet to give desired dillution
+4. Close SF
+5. Warm sample
+6. Adjust bellows for best current
+7. Run sample
+
+### Flow tests
+
+
+
+Ran live tank gas and an OX-II breakseal.
+
+Load data from tests & runs
+
+```{r}
+
+data <- amstools::readResfile("/mnt/shared/USAMS/Results/USAMS053018R.txt")
+data <- mungeResfile(data)
+data <- data %>%
+  filter(Sample.Name != "Ceylon",
+         ts < "2018-05-31")
+
+data %>% group_by(Sample.Name) %>%
+  summarise(mean = mean(cor1412he),
+            sd = sd(cor1412he))
+
+p <- ggplot(data, aes(ts, cor1412he, group=Sample.Name))
+
+p + geom_point()
+p + geom_boxplot()
+```
+
+### Data runs
+
+```{r}
+
+```
+
+## Jun 6, 2018 - Flow tests
+
+Lowered arm by a full turn, moved actuator clevis down by one turn. Some additional alignment testing: Move arm, test current, repeat. Best flow/current- 9uA at source pressure of 7E-7 Torr.
+
+Reterminated black PEEK capillary.
+
+Calc for best flow:
+
+
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 1.58
+flowcalc(20, r, u, x)
+```
+```{r}
+flowdat <- read.csv("../Data/DIflowJun618.csv")
+
+
+ggplot(flowdat, aes(source, current)) +
+  geom_line() + geom_point() +
+  labs(x = "Source pressure (Torr)", y = "Source current (uA)")
+str(flowdat)
+```

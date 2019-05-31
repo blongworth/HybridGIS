@@ -35,7 +35,7 @@ capillary, parameters for Pouiselle's equation are as follows:
 r <- 2.5E-5
 u <- 1.49E-5
 x <- 8.2
-flowcalc(300, r, u, x)
+flowcalc(100, r, u, x)
 ```
 
 ## Parameters for published hybrid GIS systems
@@ -88,16 +88,29 @@ flowcalc(100, r, u, x)
 ```{r}
 r <- 2.5E-5
 u <- 1.49E-5
-x <- 3
-flowcalc(100, r, u, x)
+x <- 5
+flowcalc(101, r, u, x)
 ```
+75um capillary
+```{r}
+r <- 3.75E-5
+u <- 1.49E-5
+x <- 2.8
+flowcalc(101, r, u, x)
+```
+
 ```{r}
 r <- 2.5E-5
 u <- 1.49E-5
 x <- 7
 flowcalc(100, r, u, x)
 ```
-
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 3
+flowcalc(20, r, u, x)
+```
 ### Low pressure 15 mbar
 
 100um capillary
@@ -105,15 +118,10 @@ flowcalc(100, r, u, x)
 ```{r}
 r <- 5E-5
 u <- 1.49E-5
-x <- 2.0
-flowcalc(2.5, r, u, x)
+x <- 1.58
+flowcalc(1.5, r, u, x)
 ```
-```{r}
-r <- 5E-5
-u <- 1.49E-5
-x <- 3.0
-flowcalc(10, r, u, x)
-```
+
 ### Medium pressure 150mbar
 
 75um capillary
@@ -138,9 +146,25 @@ Medium pressure 150mbar 100um x 1.58m PEEK capillary
 r <- 5E-5
 u <- 1.49E-5
 x <- 1.58
+flowcalc(20, r, u, x)
+```
+
+10x dillution
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 1.58
 flowcalc(15, r, u, x)
 ```
 
+Theoretical flows with pressure adjusted for best current.
+
+```{r}
+r <- 5E-5
+u <- 1.49E-5
+x <- 1.58
+flowcalc(60, r, u, x)
+```
 Actual performance of "100um"" x 1.58m PEEK capillary *IF* flow is ~10uL/min. Looks like
 true diameter after crimping is around 40um.
 
