@@ -6,9 +6,9 @@ output:
   pdf_document: default
 ---
 
-Load libraries and functions
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
+# Load libraries and functions
 library(tidyverse)
 library(ggplot2)
 library(amstools)
@@ -95,13 +95,17 @@ pressure in Torr, current in uA. Replumbed helium to panel open split with
 needle valve partway through to better control flow. Live CO2 set to 10mL/min.
 
 ```{r}
-co2 <- c(18, 18, 18, 18, 18, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10)
-caplen <- c(322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 230, 230, 177, 177)
-helium <- c(0, 100, 200, 300, 500, 0, 10, 20, 30, 50, 100, 200, 100, 200, 100, 50)
-sourcevac <- c(7.5E-6,1.5E-6,1E-6,8.5E-7,8.4E-7,7.5E-7, 3.3E-6, 2.3E-6, 1.9E-6, 1.5E-6, 1E-6, 9.3E-7, 1.1E-6, 1.4E-6, 1.7E-6, 2.3E-6)
-current <- c(7, 4, 3, 2, 2, 6.7, 5, 4, 3.5, 2.6, 1.6, 1.3, 1.3, 1.8, 2.3, 3.6)
+osdil <- tibble(
+  co2 = c(18, 18, 18, 18, 18, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10),
+  caplen = c(322, 322, 322, 322, 322, 322, 322, 322, 322, 322, 
+             322, 322, 230, 230, 177, 177),
+  helium = c(0, 100, 200, 300, 500, 0, 10, 20, 30, 50, 
+             100, 200, 100, 200, 100, 50),
+  sourcevac = c(7.5E-6,1.5E-6,1E-6,8.5E-7,8.4E-7,7.5E-7, 3.3E-6, 2.3E-6, 
+                1.9E-6, 1.5E-6, 1E-6, 9.3E-7, 1.1E-6, 1.4E-6, 1.7E-6, 2.3E-6),
+  current = c(7, 4, 3, 2, 2, 6.7, 5, 4, 3.5, 2.6, 1.6, 1.3, 1.3, 1.8, 2.3, 3.6)
+)
 
-osdil <- data.frame(co2, caplen, helium, sourcevac, current)
 write.csv(osdil, here("Data/dillution.csv"))
 osdil <- mutate(osdil, ratio = helium/co2)
 osdil
@@ -110,21 +114,22 @@ osdil
 ```{r}
 filter(osdil, co2 == 18) %>%
   ggplot(aes(ratio, current)) +
-    geom_line()
+    geom_line() + 
+    ggtitle("Current vs dillution ratio, CO2 at 18ml/min")
 filter(osdil, co2 == 10, caplen == 322) %>%
   ggplot(aes(ratio, current)) +
-    geom_line()
+    geom_line() +
+    ggtitle("Current vs dillution ratio, CO2 at 10ml/min")
 ```
 
 
 #### Test Acquisitions
 
 Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, dilluted
-live, diluted dead.
+live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I.
 
 ```{r}
 # Load data
-
 data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS053018R.txt")
 data <- mungeResfile(data)
 sdata <- data %>% 
@@ -136,15 +141,12 @@ sdata <- data %>%
             psd = sd(cor1412he)/mean,
             pse = se/mean,
             interr = 1/sqrt(sum(CntTotGT)),
-            N = n())
+            N = n()) %>%
+  mutate(normfm = mean/9.8669966 * 1.0398)
 sdata
 ```
 
-Normalize!
-
-```{r}
-sdata %>% mutate(normfm = mean/9.8669966 * 1.0398)
-```
+Summary data for undilluted live gas. 
 
 ```{r}
 ospure <- filter(data, Sample.Name == "LiveGas")
@@ -156,15 +158,12 @@ mean(ospure$cor1412he)
 sd(ospure$cor1412he)
 ```
 
+Not sure where the data is for the following statement:
+
 Load pos 7 (new target). Initial current 20uA (lots of LE13C - hydrides).
 Down to 2uA in 2 min. 10mL/min of pure modern CO2 into open split.
 Acquired 60 x 30s blocks.
 
-PLOT
-
-```{r}
-
-```
 
 
 ### May 31, 2019 - startup tests
@@ -173,7 +172,28 @@ Reinstalled gas delivery arm after cleaning and polishing ball end.
 
 Using 50um x .5m capillary source to cage and 50um x 2.5m to open split. Open split flowing modern co2 at 10mL/min. Using same targets and wheel as last time. Surprisingly good performance, including no-gas base current, hgis current and solid samples.
 
+Currents up to 15uA, source vac 8.3E-7 with gas on, 5.5E-7 with gas off.
+
 
 ### Jun 3 2019 - dillution tests
 
-Spun up inlet turbopump.
+Spun up inlet turbopump. Looked at dillution and current.
+
+```{r}
+dil <- tibble(
+  CO2 = c(10, 10, 10, 10, 10),
+  Tot = c(10, 20, 30, 43.5, 10),
+  vac = c(1.24E-6, 9.52E-7, 8.3E-7, 8E-7, 1.07E-6),
+  cur = c(10, 9.6, 7, 5, 10)
+) %>% 
+  mutate(He = Tot - CO2,
+         ratio = He/CO2)
+dil
+```
+```{r}
+ggplot(dil, aes(ratio, cur)) +
+  geom_line() +
+  ggtitle("Current vs dillution ratio, CO2 at 10ml/min")
+```
+
+
