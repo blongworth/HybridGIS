@@ -7,15 +7,19 @@ output:
 date: "03-28-2017"
 ---
 
-First tests of the USAMS SNICS-134 Hybrid gas ion source.
+First tests of the USAMS SNICS-134 Hybrid gas ion source. Where not specified, flows are given in $\frac{\mu L}{m}$ and pressure in kPa, and ion currents are in uA of 12C.
 
 ```{r libraries, warning=FALSE, message=FALSE}
 library(amstools)
 library(tidyverse)
 library(ggplot2)
+library(here)
+
+theme_set(theme_minimal())
 ```
 
 # Flow rates
+
 
 ## Calculated flow
 
@@ -81,7 +85,9 @@ flow <- function(f) {
 }
 ggplot(data = data.frame(pressure = 0, flow = 0),
        mapping = aes(x = pressure, y = flow)) +
-  stat_function(fun = flow) + xlim(0,400)
+  stat_function(fun = flow) + xlim(0,400) +
+  ggtitle("Theoretical flow for given pressure",
+          subtitle = "8.2m x 50um capillary")
 ```
 
 
@@ -98,7 +104,7 @@ Kalina made measurements with both helium and CO2. The measurements below are
 with helium and converted to CO2 by the ratio of their viscosities.
 
 ```{r}
-bflow <- read.csv("../Data/bubbleflow.csv") %>%
+bflow <- read.csv(here("Data/bubbleflow.csv")) %>%
   mutate(heflow = volume/time,
          flow = heflow * 1.49E-5/1.90E-5, # co2/He viscosity
          pressure = pressure - 14.7, # subract 1 Atm for delta P
@@ -109,25 +115,27 @@ ggplot(bflow, aes(pressure, flow)) +
   geom_point() +
   geom_line() +
   xlim(0,400) + ylim(0,80) +
-  ggtitle("Flow vs pressure")
+  ggtitle("Flow vs pressure",
+          subtitle = "measured by gauge and bubble flow meter")
 
 ggplot(bflow, aes(calcflow, flow)) + 
   geom_point() +
   geom_line() +
-  ggtitle("Measured vs predicted flow")
+  ggtitle("Measured (bubble meter) vs predicted flow")
 ```
 
 
 ### Leak detector
+
+#### 2017-10-17?
 
 Measured leak rate using Helium leak detector. Ran capillary to KF adapter
 flange. Pressures in kPa, leak rates in $\frac{Pa\cdot m^3}{s}$. Leak detector
 switched to gross leak mode between 150 kPa and 200 kPa.
 
 ```{r}
-ldflow <- read.csv("../Data/HeLeakCapillaryFlow.csv", skip = 3)
+ldflow <- read.csv(here("Data/HeLeakCapillaryFlow.csv"), skip = 3)
 
-# convert to sccm
 ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016, # convert to sccm
                  co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
                  flow = co2sccm * 1E3, # convert to ul/m
@@ -136,12 +144,12 @@ ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016, # convert to sccm
 ggplot(ldflow, aes(Regulator, flow)) + 
   geom_point() +
   geom_line() +
-  ggtitle("Flow vs pressure")
+  ggtitle("Flow (measured by leak detector) vs pressure")
 
 ggplot(ldflow, aes(calcflow, flow)) + 
   geom_point() +
   geom_line() +
-  ggtitle("Measured vs predicted flow")
+  ggtitle("Measured (by leak detector) vs predicted flow")
 
 ```
 
@@ -149,10 +157,9 @@ ggplot(ldflow, aes(calcflow, flow)) +
 ## Efficiency functions
 
 These functions convert volume of CO2 and coulombs of charge to atoms of C. The
-ratio of these is the measurement efficiency of a gas ion source system.
+ratio of these is the measurement efficiency of a gas ion source system. These are used for later calculations of efficiency given flow rate and ion current.
 
 ```{r}
-
 # convert L CO2 to atoms C
 lCO2toatC <- function (vol) {
   molC <- vol * 1/22.4 # 22.4 L of gas per mole at stp
@@ -160,14 +167,12 @@ lCO2toatC <- function (vol) {
   atC
 }
 
-
 # convert current in A to atoms C/sec
-CcurtoatC <- function(cur, cs){
+CcurtoatC <- function(cur, cs) {
   at12C <- cur * 6.25E18 # electrons per coulomb
   at12C <- at12C / cs # divide by charge state
   at12C
 }
-
 
 # calculate efficiency from ml/m CO2 and uA C12
 hgis_eff <- function(ulm, uA, cs = 3) {
@@ -203,22 +208,29 @@ data <- readResfile("/mnt/shared/USAMS/Results/2017 Results/USAMS032817R.txt") %
 
 For the first target, we turned up the gas supply pressure while measuring
 source current at the high energy FC. These currents are roughly equivalent to
-le12C.
-
-* TODO: Blank current subtraction
+le12C (~30% transmission @ 3+ charge state).
 
 Load and massage the data...
 
 ```{r}
-cur <- read.delim("../Data/1sttestcurrents.csv") %>%
+cur <- read_tsv(here("Data/2017-03-28Currents.tsv")) %>%
   mutate(flow = flowcalc(regp, r, u, x),
          eff = hgis_eff(flow, he12c, cs = 1)) %>% # cs 1 to estimate LE current
   filter(t > 5) 
 ```
 
 ```{r}
-ggplot(cur, aes(regp, he12c)) + geom_line() + geom_point()
-ggplot(cur, aes(flow, he12c)) + geom_line() + geom_point()
+ggplot(cur, aes(regp, he12c)) +
+  geom_line() +
+  geom_point() +
+  ggtitle("Current vs Pressure",
+          subtitle = "2017-03-28")
+
+ggplot(cur, aes(flow, he12c)) +
+  geom_line() +
+  geom_point() +
+  ggtitle("Current vs Flow",
+          subtitle = "2017-03-28")
 ```
 
 Currents were very stable after an initial burn in of ~10m. Initial current
@@ -226,9 +238,10 @@ started at ~12uA without gas on target and decayed (roughly) exponentially to a
 minimum around 1.2uA.
 
 ```{r}
-data %>% filter(Pos %in% c(11,12)) %>%
-       	ggplot(aes(ts, he12C, color = Pos)) +
-       	geom_line() + geom_point() + ylim(c(0,8))
+data %>% 
+  filter(Pos %in% c(11,12)) %>%
+  ggplot(aes(ts, he12C, color = Pos)) +
+   	geom_line() + geom_point() + ylim(c(0,8))
 ```
 
 
@@ -245,30 +258,31 @@ ggplot(cur, aes(flow, eff)) + geom_line() + geom_point()
 ### Ratios
 
 Ratios for live and dead CO2 were recorded in 180 blocks of 10s each. Solid AA
-and OX-I were run with 10 blocks of 180s.
-
+and OX-I were run with 10 blocks of 180s. These results are summarized and roughly normalized to solid OX-I below.
 
 #### Summary table
 
 ```{r}
-data.s <- data %>% group_by(Pos) %>% summarize(c1412.m = mean(X14.12he),
-                                         c1412.s = sd(X14.12he),
-                                         c1412.sdr = c1412.s/c1412.m,
-                                         c1412.se = se(X14.12he),
-                                         c1412.ser = c1412.se/c1412.m,
-                                         cor1412.m = mean(cor1412he),
-                                         counts = sum(CntTotGT),
-                                         interr = 1/sqrt(counts))
-knitr::kable(data.s, digits = 4)
-```
 
-Normalize!
-
-```{r}
+# mean of the solid OX-I's
 stdrat <- mean(c(10.0038, 9.9445))
-data.s <- data.s %>% mutate(normfm = cor1412.m/stdrat * 1.0398)
-data.s
+
+data.s <- data %>% 
+  group_by(Pos) %>% 
+  summarize(c1412.m = mean(X14.12he),
+            c1412.s = sd(X14.12he),
+            c1412.sdr = c1412.s/c1412.m,
+            c1412.se = se(X14.12he),
+            c1412.ser = c1412.se/c1412.m,
+            cor1412.m = mean(cor1412he),
+            counts = sum(CntTotGT),
+            interr = 1/sqrt(counts)) %>% 
+  mutate(normfm = cor1412.m/stdrat * 1.0398) 
+
+knitr::kable(data.s, digits = 4,
+             caption = "Summary data for US032817")
 ```
+
 
 #### Plots
 
