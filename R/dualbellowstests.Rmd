@@ -1,14 +1,14 @@
 ---
 title: "Dual Bellows Tests"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 Load libraries and functions
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(amstools)
 source('~/Projects/HybridGIS/R/HGISFunctions.R')
@@ -230,7 +230,7 @@ C-1 HY-31410 Pos 18
 
 ```{r}
 
-data <- amstools::readResfile("/mnt/shared/USAMS/Results/USAMS052318RHIGS.txt") %>% mungeResfile()
+data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS052318RHIGS.txt") %>% mungeResfile()
 
 sdata <- data %>% group_by(Sample.Name) %>%
   summarise(mean = mean(cor1412he),
@@ -239,15 +239,11 @@ sdata <- data %>% group_by(Sample.Name) %>%
             psd = sd(cor1412he)/mean,
             pse = se/mean,
             interr = 1/sqrt(sum(CntTotGT)),
-            N = n())
+            N = n()) %>%
+  mutate(normfm = mean/9.7150433 * 1.0398)
 sdata
 ```
 
-Normalize!
-
-```{r}
-sdata %>% mutate(normfm = mean/9.7150433 * 1.0398)
-```
 
 ```{r}
 p <- ggplot(data, aes(ts, X14.12he, group=Sample.Name))
@@ -286,8 +282,8 @@ Load data from tests & runs
 
 ```{r}
 
-data <- amstools::readResfile("/mnt/shared/USAMS/Results/USAMS053018R.txt")
-data <- mungeResfile(data)
+data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS053018R.txt") %>%   
+  mungeResfile()
 data <- data %>%
   filter(Sample.Name != "Ceylon",
          ts < "2018-05-31")
