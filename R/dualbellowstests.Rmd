@@ -1,9 +1,9 @@
 ---
 title: "Dual Bellows Tests"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 
 Load libraries and functions
@@ -11,6 +11,10 @@ Load libraries and functions
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(amstools)
+library(here)
+
+theme_set(theme_bw())
+
 source('~/Projects/HybridGIS/R/HGISFunctions.R')
 ```
 
@@ -18,14 +22,14 @@ source('~/Projects/HybridGIS/R/HGISFunctions.R')
 
 Tested flow rates using helium leak checker.
 
-### First test 65 and 100um PEEK capillaries
+### 2017-07-31 First test 65 and 100um PEEK capillaries
 
-Tests on 07/31/2017. Used dual bellows sample inlet block. Attached capillary to sample-mass spec outlet (valve SM). Loaded Helium at SI, measured pressure with inlet gauge. Used two PEEK capillaries- 65um and 100um ID x 158cm long.
+Used dual bellows sample inlet block. Attached capillary to sample-mass spec outlet (valve SM). Loaded Helium at SI, measured pressure with inlet gauge. Used two PEEK capillaries- 65um and 100um ID x 158cm long.
 
 Presures in mBar, leak rate in mbar l/s.
 
 ```{r}
-r <- c(5E-5, 5E-5, 5E-5, 3.3E-5, 3.3E-5, 3.3E-5)
+r <- factor(c("5E-5", "5E-5", "5E-5", "3.3E-5", "3.3E-5", "3.3E-5"))
 press <- c(18, 30, 60, 18, 60, 103)
 leakrate <- c(6.3E-7, 3.8E-6, 1.8E-5, 5.7E-7, 8.8E-6, 2.5E-5)
 data <- data.frame(r, press, leakrate) 
@@ -38,15 +42,18 @@ data <- mutate(data,
                  flow = co2sccm * 1E3, # convert to ul/m
                  press = press / 10) # convert to kPa
                
-ggplot(data, aes(press, flow, color = as.factor(r))) + 
+ggplot(data, aes(press, flow, color = r)) + 
   geom_line() + 
-  geom_point()
+  geom_point() +
+  scale_color_discrete(name = "Diameter (um)",
+                       breaks = c("3.3E-5", "5E-5"),
+                       labels = c("65", "100")) +
+  ggtitle("Flow vs Pressure for 65um and 100um PEEK capillaries")
 ```
 
 
-### 100um capillary, second test
+### 2017-10-17 100um capillary, second test
 
-Second test of 100um capillary 17-10-2017.
 
 ```{r}
 r <- 5E-5
@@ -65,19 +72,25 @@ data <- mutate(data,
                  calflow = flowcalc(press, 5E-5, 1.49E-5, 1.58),
                  corcalflow = flowcalc(press, 2.5E-5, 1.49E-5, 1.58) ) # convert to kPa
 
-ggplot(data, aes(press, flow)) + geom_line() + geom_point()
+ggplot(data, aes(press, flow)) + 
+  geom_line() + 
+  geom_point() +
+  ggtitle("Flow vs Pressure for 100um PEEK capillary")
 ```
 
 Looks like calculated flows don't match up with measured. Is diameter of capillary wrong? Using a diameter of 50um in poiselle's gives better numbers...
 
 ```{r}
-ggplot(data, aes(flow, calflow)) + geom_line() + geom_point()
-ggplot(data, aes(flow, corcalflow)) + geom_line() + geom_point()
+ggplot(data, aes(flow, calflow)) + geom_line() + geom_point() +
+  ggtitle("Predicted vs actual flow, 100um PEEK Capillary")
+
+ggplot(data, aes(flow, corcalflow)) + geom_line() + geom_point() +
+  ggtitle("Predicted vs actual flow, if diameter = 50um")
 ```
 
-### Glass capillary
+### 2017-10-20 Glass capillary
 
-Leak checker test of 100um x 178mm glass capillary 20-10-2017.
+Leak checker test of 100um x 178mm glass capillary.
 
 ```{r}
 r <- 5E-5
@@ -103,9 +116,9 @@ ggplot(data, aes(calflow, flow)) +
   ggtitle("100um Glass Capillary, measured vs predicted flow")
 ```
 
-## Source flow tests
+## 2017-10-10 Source flow tests
 
-Tests on 10/10/2017. Same conditions as above. Inlet to source, measured source pressure with source iso GV closed. No discharge observed for any capillary.
+Same conditions as above. Inlet to source, measured source pressure with source iso GV closed. No discharge observed for any capillary.
 
 ### Source pressure vs supply pressure
 
@@ -120,27 +133,31 @@ data <- mutate(data,
                flow = flowcalc(press, 5E-5, 1.49E-5, 1.58)
 )
 
-ggplot(data, aes(press, source)) + geom_line() + geom_point()
+ggplot(data, aes(press, source)) + geom_line() + geom_point() +
+  ggtitle("Source pressure vs inlet pressure, 100um Glass Capillary")
 ```
 
 
 Calculated flow vs source pressure. Something fishy here.
 
 ```{r}
-ggplot(data, aes(flow, source)) + geom_line() + geom_point()
+ggplot(data, aes(flow, source)) + geom_line() + geom_point() +
+  ggtitle("Source pressure vs CO2 flow, 100um Glass Capillary")
 ```
 
 If the diameter of the capillary is adjusted to 50um, things look more realistic...
+
 ```{r}
 data <- mutate(data, flow = flowcalc(press, 2.5E-5, 1.49E-5, 1.58))
-ggplot(data, aes(flow, source)) + geom_line() + geom_point()
+ggplot(data, aes(flow, source)) + geom_line() + geom_point() +
+  ggtitle("Source pressure vs CO2 flow, if capillary is 50um id")
 ```
 
-### Beam tests 11/14/17
+## 2017-11-14 Beam tests
 
 Used black PEEK capillary. 
 ```{r}
-lpdata <- read.csv("../Data/14Nov2017LPtest.csv", skip = 4) %>%
+lpdata <- read.csv(here("Data/14Nov2017LPtest.csv"), skip = 4) %>%
   mutate(supply = supply / 10,
          source = source * 1E-7,
          flow = flowcalc(supply, 2E-5, 1.49E-5, 1.58))
@@ -161,7 +178,7 @@ ggplot(lpdata, aes(source, current)) + geom_smooth(span = 1) + geom_point() +
          
 ```
 
-## 04/25/2018 - Testing bellows compression
+## 2018-04-25 Testing bellows compression
 
 Wired up stepper drives. Tested currents and flows with black PEEK capillary
 (nominally 100um id). Source works fine after cleaning clog from delivery tube
@@ -173,7 +190,7 @@ inletp in mbar, sourcep in Torr, current in uA.
 
 ```{r}
 # load data
-beldat <- read_csv("../Data/bellowsApr2518.csv")
+beldat <- read_csv(here("Data/bellowsApr2518.csv"))
 beldat
 ```
 
@@ -209,7 +226,7 @@ ggplot(bellows, aes(bellows, c12cur)) +
 
 As expected, source pressure and current follow bellows position, such that bellows position is proportional to inlet pressure.
 
-## 05/23/2018 - Bellows with test samples
+## 2018-05-23 Bellows with test samples
 
 Initially tried 2m x 100um glass capillary. There were two sparks with two different capillaries. Both sparks broke capillary at what is presumably spark exit point. Later open split tests with glass capillaries did not have sparking issue. Three differences with open split: 
 
@@ -217,8 +234,7 @@ Initially tried 2m x 100um glass capillary. There were two sparks with two diffe
 2. Open split capillary is terminated in grounded SS bulkhead connector at cage.
 3. A teflon jacket was added to the capillary inside the cage.
 
-
-Load data from tests & runs
+### Load data from tests & runs
 
 Ran OX-I's and OX-II's from bellows end archive tubes. All ~100umol. 
 
@@ -230,7 +246,8 @@ C-1 HY-31410 Pos 18
 
 ```{r}
 
-data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS052318RHIGS.txt") %>% mungeResfile()
+data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS052318RHIGS.txt") %>% 
+  mungeResfile()
 
 sdata <- data %>% group_by(Sample.Name) %>%
   summarise(mean = mean(cor1412he),
@@ -251,11 +268,8 @@ p <- ggplot(data, aes(ts, X14.12he, group=Sample.Name))
 p + geom_point()
 p + geom_boxplot()
 ```
-```{r}
 
-```
-
-## 05/30/2018 - Helium Dilution tests
+## 2018-05-30 Helium Dilution tests
 
 Cleaned and reloaded sample wheel:
 2x ceylon, 2x ox-I, 8 gas cathodes.
@@ -272,9 +286,8 @@ Basic procedure:
 6. Adjust bellows for best current
 7. Run sample
 
+
 ### Flow tests
-
-
 
 Ran live tank gas and an OX-II breakseal.
 
@@ -304,7 +317,7 @@ p + geom_boxplot()
 
 ```
 
-## Jun 6, 2018 - Flow tests
+## 2018-06-06 Flow tests
 
 Lowered arm by a full turn, moved actuator clevis down by one turn. Some additional alignment testing: Move arm, test current, repeat. Best flow/current- 9uA at source pressure of 7E-7 Torr.
 
@@ -320,7 +333,7 @@ x <- 1.58
 flowcalc(20, r, u, x)
 ```
 ```{r}
-flowdat <- read.csv("../Data/DIflowJun618.csv")
+flowdat <- read.csv(here("Data/DIflowJun618.csv"))
 
 
 ggplot(flowdat, aes(source, current)) +
