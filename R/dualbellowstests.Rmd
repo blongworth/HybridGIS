@@ -15,7 +15,7 @@ library(here)
 
 theme_set(theme_bw())
 
-source('~/Projects/HybridGIS/R/HGISFunctions.R')
+source(here('R/HGISFunctions.R'))
 ```
 
 ## Leak checker flow rates
@@ -274,6 +274,8 @@ p + geom_boxplot()
 Cleaned and reloaded sample wheel:
 2x ceylon, 2x ox-I, 8 gas cathodes.
 
+Using Black PEEK capillary, 158mm x 100um.
+
 Added needle valve for UHP helium to inlet. Using turbopump instead of cryo. Base pressures are about 1E-6 initially, 6E-7 after a few hours, and 4E-7 overnight. Cryo base pressures are around 1E-7.
 
 Basic procedure:
@@ -288,6 +290,31 @@ Basic procedure:
 
 
 ### Flow tests
+
+Evacuate inlet. Add He and check source pressure vs. inlet pressure. Inlet pressure in mbar, source pressure in Torr.
+
+```{r}
+# data from He pressure test
+he_press_test <- tribble(~inletp, ~sourcep,
+                         0, 6.77,
+                         52, 6.77,
+                         102, 6.8,
+                         202, 7,
+                         303, 7.4,
+                         400, 8,
+                         516, 8.9,
+                         603, 9.7,
+                         705, 11,
+                         806, 12,
+                         905, 13) %>% 
+  mutate(sourcep = sourcep * 1E-7)
+
+ggplot(he_press_test, aes(inletp, sourcep)) + 
+    geom_point() + 
+    geom_line() +
+  ggtitle("Source vs inlet pressure, Helium")
+```
+
 
 Ran live tank gas and an OX-II breakseal.
 
