@@ -196,4 +196,33 @@ ggplot(dil, aes(ratio, cur)) +
   ggtitle("Current vs dillution ratio, CO2 at 10ml/min")
 ```
 
+### 2020-10-06 Dilution vs Ratio
 
+Testing effect of helium dilution on ratio. Used remaining targets on USAMS012220. Reterminated capillaries at cage wall and at open split.
+
+Used positions 7-10, results in USAMS012220. Low currents: ~6uA pure CO2, 3uA diluted.
+
+```{r}
+# Load data
+data <- readResfile(here("Data/USAMS012220R.txt"))
+data <- mungeResfile(data)
+sdata <- data %>% 
+  filter(Sample.Name != "Ceylon") %>%
+  group_by(Sample.Name) %>%
+  summarise(mean = mean(cor1412he),
+            sd = sd(cor1412he),
+            se = se(cor1412he),
+            psd = sd(cor1412he)/mean,
+            pse = se/mean,
+            interr = 1/sqrt(sum(CntTotGT)),
+            N = n()) %>%
+  mutate(normfm = mean/9.433353663 * 1.0398)
+sdata
+
+```
+
+Looks like diluted and undiluted live gas have the same ratio.
+
+### 2020-10-15 New wheel, low currents
+
+Loaded a new wheel (USAMS101320) with 4 solid targets and 6 gas targets. Currents were low (3uA gas, 40uA solid) and didn't increase with tune, target position or gas arm position. Will clean source and try again.
