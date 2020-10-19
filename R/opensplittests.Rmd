@@ -130,7 +130,7 @@ live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm i
 
 ```{r}
 # Load data
-data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS053018R.txt")
+data <- readResfile(here("Data/USAMS053018R.txt"))
 data <- mungeResfile(data)
 sdata <- data %>% 
   filter(Sample.Name != "Ceylon") %>%

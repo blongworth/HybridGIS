@@ -1,9 +1,9 @@
 ---
 title: "Dual Bellows Tests"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 Load libraries and functions
@@ -246,7 +246,7 @@ C-1 HY-31410 Pos 18
 
 ```{r}
 
-data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS052318RHIGS.txt") %>% 
+data <- readResfile(here("Data/USAMS052318RHIGS.txt")) %>% 
   mungeResfile()
 
 sdata <- data %>% group_by(Sample.Name) %>%
@@ -315,6 +315,10 @@ ggplot(he_press_test, aes(inletp, sourcep)) +
   ggtitle("Source vs inlet pressure, Helium")
 ```
 
+### Tank CO2 + Helium, Pos 5
+
+23 mbar CO2 frozen in inlet. Added 400 mbar He. Source pressure 8E-7, C12 .4uA. Compress to give source pressure of 4.8E-6, C12 of .6uA.
+
 
 Ran live tank gas and an OX-II breakseal.
 
@@ -322,13 +326,13 @@ Load data from tests & runs
 
 ```{r}
 
-data <- readResfile("/mnt/shared/USAMS/Results/2018 Results/USAMS053018R.txt") %>%   
+data <- readResfile(here("Data/USAMS053018R.txt")) %>%   
   mungeResfile()
 data <- data %>%
   filter(Sample.Name != "Ceylon",
          ts < "2018-05-31")
 
-data %>% group_by(Sample.Name) %>%
+data %>% group_by(Sample.Name, Pos) %>%
   summarise(mean = mean(cor1412he),
             sd = sd(cor1412he))
 
