@@ -10,10 +10,9 @@ output:
 ```{r, message=FALSE, warning=FALSE}
 # Load libraries and functions
 library(tidyverse)
-library(ggplot2)
 library(amstools)
 library(here)
-source(here('/R/HGISFunctions.R'))
+source(here('R/HGISFunctions.R'))
 ```
 
 Development notes for using the HGIS with an open split. Intention is to use
@@ -125,7 +124,7 @@ filter(osdil, co2 == 10, caplen == 322) %>%
 
 #### Test Acquisitions
 
-Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, dilluted
+Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, diluted
 live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I.
 
 ```{r}
@@ -146,7 +145,16 @@ sdata <- data %>%
 sdata
 ```
 
-Summary data for undilluted live gas. 
+
+```{r}
+data %>% 
+  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead")) %>% 
+ggplot(aes(Sample.Name, cor1412he)) +
+  geom_boxplot() +
+  facet_grid(Fm~., scales = "free_y")
+```
+
+Summary data for undiluted live gas. 
 
 ```{r}
 ospure <- filter(data, Sample.Name == "LiveGas")
@@ -166,7 +174,7 @@ Acquired 60 x 30s blocks.
 
 
 
-### May 31, 2019 - startup tests
+### 2019-05-31 - startup tests
 
 Reinstalled gas delivery arm after cleaning and polishing ball end.
 
@@ -175,9 +183,9 @@ Using 50um x .5m capillary source to cage and 50um x 2.5m to open split. Open sp
 Currents up to 15uA, source vac 8.3E-7 with gas on, 5.5E-7 with gas off.
 
 
-### Jun 3 2019 - dillution tests
+### 2019-06-03 - dillution tests
 
-Spun up inlet turbopump. Looked at dillution and current.
+Spun up inlet turbopump. Looked at dilution and current.
 
 ```{r}
 dil <- tibble(
@@ -218,7 +226,15 @@ sdata <- data %>%
             N = n()) %>%
   mutate(normfm = mean/9.433353663 * 1.0398)
 sdata
+```
 
+
+```{r}
+data %>% 
+  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead")) %>% 
+ggplot(aes(Sample.Name, cor1412he)) +
+  geom_boxplot() +
+  facet_grid(Fm~., scales = "free_y")
 ```
 
 Looks like diluted and undiluted live gas have the same ratio.
@@ -226,3 +242,82 @@ Looks like diluted and undiluted live gas have the same ratio.
 ### 2020-10-15 New wheel, low currents
 
 Loaded a new wheel (USAMS101320) with 4 solid targets and 6 gas targets. Currents were low (3uA gas, 40uA solid) and didn't increase with tune, target position or gas arm position. Will clean source and try again.
+
+
+### 2020-11-03 Continued dillution tests
+
+Still very low currents, ~2uA for live CO2. Ran a dillution test anyway with positions 5-8 on USAMS101320. 
+
+**Flows**
+
+Gas   Flow
+---   ----
+live  10
+dead  11.1
+He    30.2
+
+```{r}
+data <- readResfile(here("Data/USAMS101320R.txt"))
+data <- mungeResfile(data)
+sdata <- data %>% 
+  filter(Sample.Name != "Ceylon",
+         as.Date(ts) == "2020-11-03") %>% #separate from later run by timestamp
+  group_by(Sample.Name) %>%
+  summarise(mean = mean(cor1412he),
+            sd = sd(cor1412he),
+            se = se(cor1412he),
+            psd = sd(cor1412he)/mean,
+            pse = se/mean,
+            interr = 1/sqrt(sum(CntTotGT)),
+            N = n()) %>%
+  mutate(normfm = mean/9.905 * 1.0398)
+sdata
+```
+
+
+```{r}
+data %>% 
+  filter(as.Date(ts) == "2020-11-03") %>% 
+  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead")) %>% 
+ggplot(aes(Sample.Name, cor1412he)) +
+  geom_boxplot() +
+  facet_grid(Fm~., scales = "free_y")
+```
+
+### 2020-11-17 Dillution testing - back to good currents
+
+Finally back to testing after figuring out current issue. Rerunning dilution test. Flows: live 11.6mL/min, dead 11.1, He 30.2. Pressures: cryo base 8E-8, turbo base 3E-7, w/live CO2 1.2E-6. Source producing ~8uA HE12C with live CO2. Data in USAMS101320.
+
+Running positions 9 and 10 as 1:1 He dilutions of live and dead, respectively.
+
+```{r}
+data <- readResfile(here("Data/USAMS101320R.txt"))
+data <- mungeResfile(data)
+sdata <- data %>% 
+  filter(Sample.Name != "Ceylon",
+         as.Date(ts) == "2020-11-17") %>% #separate from earlier run by timestamp
+  group_by(Sample.Name) %>%
+  summarise(mean = mean(cor1412he),
+            sd = sd(cor1412he),
+            se = se(cor1412he),
+            psd = sd(cor1412he)/mean,
+            pse = se/mean,
+            interr = 1/sqrt(sum(CntTotGT)),
+            N = n()) %>%
+  mutate(normfm = mean/9.747 * 1.0398)
+sdata
+```
+
+
+```{r}
+data %>% 
+  filter(as.Date(ts) == "2020-11-17") %>% 
+  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead"),
+         Dilution = case_when(str_ends(Sample.Name, "1") ~ "1:1",
+                               str_starts(Sample.Name, "Dil") ~ "3:1",
+                               TRUE ~ "pure"),
+         Dilution = factor(Dilution, levels = c("pure", "1:1", "3:1"))) %>% 
+ggplot(aes(Sample.Name, cor1412he, color = Dilution)) +
+  geom_boxplot() +
+  facet_grid(Fm~., scales = "free_y")
+```
