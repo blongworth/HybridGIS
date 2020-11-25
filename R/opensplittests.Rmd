@@ -125,33 +125,23 @@ filter(osdil, co2 == 10, caplen == 322) %>%
 #### Test Acquisitions
 
 Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, diluted
-live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I.
+live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I. There are also dual inlet samples on this wheel, filtered out by date. Positions are incorrect because wheel was advanced manually. Correct positions in notebook.
 
 ```{r}
 # Load data
-data <- readResfile(here("Data/USAMS053018R.txt"))
-data <- mungeResfile(data)
-sdata <- data %>% 
-  filter(Sample.Name != "Ceylon") %>%
-  group_by(Sample.Name) %>%
-  summarise(mean = mean(cor1412he),
-            sd = sd(cor1412he),
-            se = se(cor1412he),
-            psd = sd(cor1412he)/mean,
-            pse = se/mean,
-            interr = 1/sqrt(sum(CntTotGT)),
-            N = n()) %>%
-  mutate(normfm = mean/9.8669966 * 1.0398)
-sdata
+data <- get_hgis_data(here("Data/USAMS053018R.txt"), 
+                      as.Date(c("2018-05-30", "2018-05-31"))) %>% 
+           filter(Pos %in% c(3,4) | as.Date(ts) == "2018-05-31") %>% 
+           mutate(dil_factor = case_when(str_ends(Sample.Name, "He") ~ 1,
+                                         TRUE ~ 0), 
+                  Num = ifelse(Pos %in% c(3, 4), "S", Num),
+                  normFm = norm_gas(cor1412he, mean(data$cor1412he[data$Num == "S"])))
+sum_hgis(data)
 ```
 
 
 ```{r}
-data %>% 
-  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead")) %>% 
-ggplot(aes(Sample.Name, cor1412he)) +
-  geom_boxplot() +
-  facet_grid(Fm~., scales = "free_y")
+plot_hgis(data)
 ```
 
 Summary data for undiluted live gas. 
@@ -204,37 +194,32 @@ ggplot(dil, aes(ratio, cur)) +
   ggtitle("Current vs dillution ratio, CO2 at 10ml/min")
 ```
 
-### 2020-10-06 Dilution vs Ratio
+
+### 2020-09-10 Starting up HGIS
+
+Solid run on pos 1:4 on USAMS012220.
+
+
+### 2020-09-29 Dilution vs Ratio
 
 Testing effect of helium dilution on ratio. Used remaining targets on USAMS012220. Reterminated capillaries at cage wall and at open split.
 
-Used positions 7-10, results in USAMS012220. Low currents: ~6uA pure CO2, 3uA diluted.
+Used positions 7-10, results in USAMS012220. Low currents: ~6uA pure CO2, 3uA diluted. Flows: He 10
 
 ```{r}
 # Load data
-data <- readResfile(here("Data/USAMS012220R.txt"))
-data <- mungeResfile(data)
-sdata <- data %>% 
-  filter(Sample.Name != "Ceylon") %>%
-  group_by(Sample.Name) %>%
-  summarise(mean = mean(cor1412he),
-            sd = sd(cor1412he),
-            se = se(cor1412he),
-            psd = sd(cor1412he)/mean,
-            pse = se/mean,
-            interr = 1/sqrt(sum(CntTotGT)),
-            N = n()) %>%
-  mutate(normfm = mean/9.433353663 * 1.0398)
-sdata
+data <- get_hgis_data(here("Data/USAMS012220R.txt"), 
+                      as.Date(c("2020-09-10", "2020-09-29"))) %>% 
+           mutate(dil_factor = case_when(str_starts(Sample.Name, "Dil") ~ 1,
+                                         TRUE ~ 0), 
+                  Num = ifelse(Pos == 7, "U", Num),
+                  normFm = norm_gas(cor1412he, mean(data$cor1412he[data$Num == "S"])))
+sum_hgis(data)
 ```
 
 
 ```{r}
-data %>% 
-  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead")) %>% 
-ggplot(aes(Sample.Name, cor1412he)) +
-  geom_boxplot() +
-  facet_grid(Fm~., scales = "free_y")
+plot_hgis(data)
 ```
 
 Looks like diluted and undiluted live gas have the same ratio.
@@ -257,31 +242,13 @@ dead  11.1
 He    30.2
 
 ```{r}
-data <- readResfile(here("Data/USAMS101320R.txt"))
-data <- mungeResfile(data)
-sdata <- data %>% 
-  filter(Sample.Name != "Ceylon",
-         as.Date(ts) == "2020-11-03") %>% #separate from later run by timestamp
-  group_by(Sample.Name) %>%
-  summarise(mean = mean(cor1412he),
-            sd = sd(cor1412he),
-            se = se(cor1412he),
-            psd = sd(cor1412he)/mean,
-            pse = se/mean,
-            interr = 1/sqrt(sum(CntTotGT)),
-            N = n()) %>%
-  mutate(normfm = mean/9.905 * 1.0398)
-sdata
+data <- get_hgis_data(here("Data/USAMS101320R.txt"), as.Date("2020-11-03"))
+sum_hgis_data(data)
 ```
 
 
 ```{r}
-data %>% 
-  filter(as.Date(ts) == "2020-11-03") %>% 
-  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead")) %>% 
-ggplot(aes(Sample.Name, cor1412he)) +
-  geom_boxplot() +
-  facet_grid(Fm~., scales = "free_y")
+plot_gas(data)
 ```
 
 ### 2020-11-17 Dillution testing - back to good currents
@@ -291,33 +258,11 @@ Finally back to testing after figuring out current issue. Rerunning dilution tes
 Running positions 9 and 10 as 1:1 He dilutions of live and dead, respectively.
 
 ```{r}
-data <- readResfile(here("Data/USAMS101320R.txt"))
-data <- mungeResfile(data)
-sdata <- data %>% 
-  filter(Sample.Name != "Ceylon",
-         as.Date(ts) == "2020-11-17") %>% #separate from earlier run by timestamp
-  group_by(Sample.Name) %>%
-  summarise(mean = mean(cor1412he),
-            sd = sd(cor1412he),
-            se = se(cor1412he),
-            psd = sd(cor1412he)/mean,
-            pse = se/mean,
-            interr = 1/sqrt(sum(CntTotGT)),
-            N = n()) %>%
-  mutate(normfm = mean/9.747 * 1.0398)
-sdata
+data <- get_hgis_data(here("Data/USAMS101320R.txt"), as.Date("2020-11-17"))
+sum_hgis(data)
 ```
 
 
 ```{r}
-data %>% 
-  filter(as.Date(ts) == "2020-11-17") %>% 
-  mutate(Fm = ifelse(cor1412he > 5, "modern", "dead"),
-         Dilution = case_when(str_ends(Sample.Name, "1") ~ "1:1",
-                               str_starts(Sample.Name, "Dil") ~ "3:1",
-                               TRUE ~ "pure"),
-         Dilution = factor(Dilution, levels = c("pure", "1:1", "3:1"))) %>% 
-ggplot(aes(Sample.Name, cor1412he, color = Dilution)) +
-  geom_boxplot() +
-  facet_grid(Fm~., scales = "free_y")
+plot_hgis(data)
 ```
