@@ -117,8 +117,7 @@ live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm i
 data <- get_hgis_data(here("Data/USAMS053018R.txt"), 
                       as.Date(c("2018-05-30", "2018-05-31"))) %>% 
            filter(Pos %in% c(3,4) | as.Date(ts) == "2018-05-31") %>% 
-           mutate(dil_factor = case_when(str_ends(Sample.Name, "He") ~ 1,
-                                         TRUE ~ 0),
+           mutate(dil_factor = ifelse(str_ends(Sample.Name, "He"), 1, 0),
                   Num = ifelse(Pos %in% c(3, 4), "S", Num))
 
 stdrat <- mean(data$cor1412he[data$Num == "S"])
@@ -133,19 +132,11 @@ sum_hgis(data)
 plot_hgis(data)
 ```
 
-Summary data for undiluted live gas. 
-
-```{r}
-filter(data, Sample.Name == "LiveGas") %>% 
-ggplot(aes(ts, normFm)) + geom_point()
-```
-
 Not sure where the data is for the following statement:
 
 Load pos 7 (new target). Initial current 20uA (lots of LE13C - hydrides).
 Down to 2uA in 2 min. 10mL/min of pure modern CO2 into open split.
 Acquired 60 x 30s blocks.
-
 
 
 ### 2019-05-31 - startup tests
@@ -195,8 +186,7 @@ Used positions 7-10, results in USAMS012220. Low currents: ~6uA pure CO2, 3uA di
 # Load data
 data <- get_hgis_data(here("Data/USAMS012220R.txt"), 
                       as.Date(c("2020-09-10", "2020-09-29"))) %>% 
-           mutate(dil_factor = case_when(str_starts(Sample.Name, "Dil") ~ 1,
-                                         TRUE ~ 0), 
+           mutate(dil_factor = ifelse(str_starts(Sample.Name, "Dil"), 1, 0), 
                   Num = ifelse(Pos == 7, "U", Num))
 stdrat <- mean(data$cor1412he[data$Num == "S"])
 data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
