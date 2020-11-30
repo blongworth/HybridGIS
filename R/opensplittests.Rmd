@@ -13,6 +13,8 @@ library(tidyverse)
 library(amstools)
 library(here)
 source(here('R/HGISFunctions.R'))
+theme_set(theme_bw())
+options(digits = 3)
 ```
 
 Development notes for using the HGIS with an open split. Intention is to use
