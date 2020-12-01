@@ -157,6 +157,11 @@ Reinstalled gas delivery arm after cleaning and polishing ball end.
 
 Using 50um x .5m capillary source to cage and 50um x 2.5m to open split. Open split flowing modern co2 at 10mL/min. Using same targets and wheel as last time. Surprisingly good performance, including no-gas base current, hgis current and solid samples.
 
+```{r}
+flowcalc(pres = 100, r = 2.5E-5, u = 1.49E-5, l = 3.0)
+```
+
+
 Currents up to 15uA, source vac 8.3E-7 with gas on, 5.5E-7 with gas off.
 
 No data recorded
@@ -248,6 +253,13 @@ Running positions 9 and 10 as 1:1 He dilutions of live and dead, respectively.
 ```{r}
 data <- get_hgis_data(here("Data/USAMS101320R.txt"), as.Date("2020-11-17"))
 sum_hgis(data)
+```
+
+Look at counts per second to think about needed acquisition time.
+
+```{r}
+data %>% group_by(Sample.Name) %>% 
+  summarize(cps = mean(CntTotGT/(Cycles/10)))
 ```
 
 
