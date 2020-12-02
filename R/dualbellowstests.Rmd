@@ -361,7 +361,7 @@ sum_hgis(data)
 ```
 
 
-## 2018-06-06 Flow tests
+## 2018-06-06 diagnosing flow problems
 
 Lowered arm by a full turn, moved actuator clevis down by one turn. Some additional alignment testing: Move arm, test current, repeat. Best flow/current- 9uA at source pressure of 7E-7 Torr.
 
@@ -377,10 +377,36 @@ x <- 1.58
 flowcalc(20, r, u, x)
 ```
 
+12C current vs source pressure before and after delivery arm realignment.
+
 ```{r}
 flowdat <- read.csv(here("Data/DIflowJun618.csv"))
-ggplot(flowdat, aes(source, current)) +
+ggplot(flowdat, aes(source, current, color = Alignment)) +
   geom_line() + geom_point() +
   labs(x = "Source pressure (Torr)", y = "Source current (uA)")
 str(flowdat)
 ```
+
+Data from runs is in USAMS060618R.txt. Not 100% certain which samples are in which positions. Data look like 3 modern tank gas.
+
+```{r}
+data <- get_hgis_data(here("Data/USAMS060618R.txt")) %>% 
+  filter(Pos != 1) %>% 
+                  mutate(Num = ifelse(Pos %in% c(3, 4), "S", "U"))
+
+# Get mean ratio for solid OX-I and normalize data
+stdrat <- mean(data$cor1412he[data$Num == "S"])
+data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+                  
+plot_hgis_time(data)
+```
+
+```{r}
+sum_hgis(data)
+```
+
+```{r}
+plot_hgis(data)
+
+```
+
