@@ -85,7 +85,7 @@ source to bulkhead with teflon jacket, 285cm bulkhead to open split.
 flowcalc(100, r = 2.5E-5, u = 1.49E-5, l = 3.35)
 ```
 
-This is way too high. I may have been using a 50um capilary for the tests.
+This is way too high. I may have been using a 50um capillary for the tests.
 
 #### Pressures
 
@@ -123,13 +123,19 @@ osdil %>%
 #### Test Acquisitions
 
 Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, diluted
-live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I. There are also dual inlet samples on this wheel, filtered out by date. Positions are incorrect because wheel was advanced manually. Correct positions in notebook.
+live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I. There are also dual inlet samples on this wheel, filtered out by date. Positions are incorrect in file because wheel was advanced manually. Correct positions in notebook and fixed below. Added correct dillution factors below.
 
 ```{r}
 data <- get_hgis_data(here("Data/USAMS053018R.txt"), 
                       as.Date(c("2018-05-30", "2018-05-31"))) %>% 
            filter(Pos %in% c(3,4) | as.Date(ts) == "2018-05-31") %>% 
-           mutate(dil_factor = ifelse(str_ends(Sample.Name, "He"), 1, 0),
+           mutate(Pos = case_when(Sample.Name == "LiveGas" ~ 7,
+                                  Sample.Name == "DeadGas" ~ 8,
+                                  Sample.Name == "LiveGasHe" ~ 9,
+                                  Sample.Name == "DeadGasHe" ~ 10,
+                                  TRUE ~ as.numeric(Pos)),
+                  dil_factor = case_when(Pos == 9 ~ (50.3 - 9.4)/9.4,
+                                         Pos == 10 ~ (40 - 4.8)/4.8),
                   Num = ifelse(Pos %in% c(3, 4), "S", Num))
 
 # Get mean ratio for solid OX-I and normalize data
@@ -143,12 +149,6 @@ sum_hgis(data)
 ```{r}
 plot_hgis(data)
 ```
-
-Not sure where the data is for the following statement:
-
-Load pos 7 (new target). Initial current 20uA (lots of LE13C - hydrides).
-Down to 2uA in 2 min. 10mL/min of pure modern CO2 into open split.
-Acquired 60 x 30s blocks.
 
 
 ### 2019-05-31 - startup tests
