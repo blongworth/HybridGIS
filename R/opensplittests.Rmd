@@ -266,3 +266,31 @@ data %>% group_by(Sample.Name) %>%
 ```{r}
 plot_hgis(data)
 ```
+
+### 2020-12-03 Blank tests
+
+Ran a series of blank tests before exposing graphite samples or introducing live co2. 
+
+```{r}
+data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2020-12-04"))
+sum_hgis(data)
+```
+
+
+
+```{r}
+plot_hgis(data)
+```
+
+### Modeling Blank
+
+With these data we can start to think about modeling a mass balance, or more accurately, a current balance blank. It's not initally clear whether the blank comes from the target/source, dilluent helium, or a combination of the two.
+
+```{r}
+data %>% filter(Pos %in% 9:12) %>% 
+  ggplot(aes(he12C, normFm, color = Sample.Name)) +
+  geom_point()
+```
+TODO: Fit mass balance curve using currents
+TODO: Use bottle gas to produce live/dead curves 
+TODO: produce live/dead curves using helium dillution
