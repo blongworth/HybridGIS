@@ -267,6 +267,13 @@ data %>% group_by(Sample.Name) %>%
 plot_hgis(data)
 ```
 
+```{r}
+data %>% filter(Pos %in% 5:10) %>% 
+  ggplot(aes(he12C, normFm, color = Sample.Name)) +
+  geom_point()
+```
+Doesn't seem to follow curves expected for a MBC with nearly live blank at about 1% of gas current.
+
 ### 2020-12-03 Blank tests
 
 Ran a series of blank tests before exposing graphite samples or introducing live co2. 
@@ -282,7 +289,7 @@ sum_hgis(data)
 plot_hgis(data)
 ```
 
-### Modeling Blank
+#### Modeling Blank
 
 With these data we can start to think about modeling a mass balance, or more accurately, a current balance blank. It's not initally clear whether the blank comes from the target/source, dilluent helium, or a combination of the two.
 
@@ -291,6 +298,40 @@ data %>% filter(Pos %in% 9:12) %>%
   ggplot(aes(he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
+
+```{r}
+data %>% filter(Pos %in% 9:12) %>% 
+  ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
+  geom_point()
+```
+
 TODO: Fit mass balance curve using currents
 TODO: Use bottle gas to produce live/dead curves 
 TODO: produce live/dead curves using helium dillution
+
+### 2020-12-11 open split flow reduction
+
+Testing reduced open split flows. Worked with flow controller (helium) and adjusted stops on live and dead co2 needle valves to allow lower flows. Tested for breakthrough by flowing helium through split and into source while blowing dead CO2 accross the opening of the split at ~10mL/min. CO2 seen in source somewhere between 100 and 300 uL/min. Hard to measure with this setup due to slow response time and lack of sensitivity of capillary/ion source. Need to try this with leak checker.
+
+Reran blank tests at lower flows. Results seem as good or better than last week's tests at high flows. This may also be due to targets being more pumped down or burned in.
+
+TODO: get flows from notes.
+
+```{r}
+names(data)
+data <- get_hgis_data(here("Data/USAMS120320R.txt")) %>% 
+  filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11")
+sum_hgis(data)
+```
+
+
+```{r}
+plot_hgis(data)
+```
+
+
+```{r}
+data %>% filter(Pos %in% 9:12) %>% 
+  ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
+  geom_point()
+```
