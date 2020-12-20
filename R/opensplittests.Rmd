@@ -20,11 +20,11 @@ options(digits = 3)
 Development notes for using the HGIS with an open split. Intention is to use
 with gasbench for carbonates and/or large co2 samples.
 
-## Capillary parameters
+# Capillary parameters
 
 Calculate ideal capillary to provide ~7.5uL/min at atmospheric pressure.
 
-### Short capillary at 1 atm
+## Short capillary at 1 atm
 
 40um capillary
 
@@ -55,7 +55,7 @@ flowcalc(100, r, u, x)
 ```
 
 
-### 2018-04-10 - First tests
+## 2018-04-10 - First tests
 
 Tried a bunch of capillary combinations. Other than initial pressure burst when
 opening or closing HGIS valve, couldn't see any source pressure changes or beam
@@ -66,7 +66,7 @@ Cleaned capillary end at next source cleaning, first with kimwipe and water,
 then with isopropanol. Lots of black crud. Confirmed open passage by blowing N2
 through capillary into cup of isopropanol to observe bubbles.
 
-### 2018-05-23 First tests
+## 2018-05-23 First tests
 
 Tried 3m of 50um glass capillary. Insulated from source to cage with
 teflon tubing as outer jacket. No problems with sparks.
@@ -74,12 +74,12 @@ teflon tubing as outer jacket. No problems with sparks.
 Low currents, even when cutting capillary down to 2m. Either steel
 capillary is partially clogged or tip is not making good seal with target.
 
-### 2018-05-31 - He Dilution
+## 2018-05-31 - He Dilution
 
 Open split set up with helium dilution. Using 100um glass capillary. ~50cm
 source to bulkhead with teflon jacket, 285cm bulkhead to open split. 
 
-#### Flows
+### Flows
 
 ```{r}
 flowcalc(100, r = 2.5E-5, u = 1.49E-5, l = 3.35)
@@ -87,7 +87,7 @@ flowcalc(100, r = 2.5E-5, u = 1.49E-5, l = 3.35)
 
 This is way too high. I may have been using a 50um capillary for the tests.
 
-#### Pressures
+### Pressures
 
 Table: Source pressures
 
@@ -98,7 +98,7 @@ base w/turbo  4E-7
 capillary     36E-7 
 
 
-#### Dilution and current
+### Dilution and current
 
 Flow and current tests with varying capillary and dilution. Flows in mL/min,
 pressure in Torr, current in uA. Replumbed helium to panel open split with
@@ -120,7 +120,7 @@ osdil %>%
 ```
 
 
-#### Test Acquisitions
+### Test Acquisitions
 
 Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, diluted
 live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I. There are also dual inlet samples on this wheel, filtered out by date. Positions are incorrect in file because wheel was advanced manually. Correct positions in notebook and fixed below. Added correct dillution factors below.
@@ -151,7 +151,8 @@ plot_hgis(data)
 ```
 
 
-### 2019-05-31 - startup tests
+
+## 2019-05-31 - startup tests
 
 Reinstalled gas delivery arm after cleaning and polishing ball end.
 
@@ -166,7 +167,7 @@ Currents up to 15uA, source vac 8.3E-7 with gas on, 5.5E-7 with gas off.
 
 No data recorded
 
-### 2019-06-03 - dillution tests
+## 2019-06-03 - dillution tests
 
 Spun up inlet turbopump. Looked at dilution and current.
 
@@ -188,12 +189,12 @@ ggplot(dil, aes(ratio, cur)) +
 ```
 
 
-### 2020-09-10 Starting up HGIS
+## 2020-09-10 Starting up HGIS
 
 Solid run on pos 1:4 on USAMS012220.
 
 
-### 2020-09-29 Dilution vs Ratio
+## 2020-09-29 Dilution vs Ratio
 
 Testing effect of helium dilution on ratio. Used remaining targets on USAMS012220. Reterminated capillaries at cage wall and at open split.
 
@@ -217,12 +218,12 @@ plot_hgis(data)
 
 Looks like diluted and undiluted live gas have the same ratio.
 
-### 2020-10-15 New wheel, low currents
+## 2020-10-15 New wheel, low currents
 
 Loaded a new wheel (USAMS101320) with 4 solid targets and 6 gas targets. Currents were low (3uA gas, 40uA solid) and didn't increase with tune, target position or gas arm position. Will clean source and try again.
 
 
-### 2020-11-03 Continued dillution tests
+## 2020-11-03 Continued dillution tests
 
 Still very low currents, ~2uA for live CO2. Ran a dillution test anyway with positions 5-8 on USAMS101320. 
 
@@ -244,7 +245,7 @@ sum_hgis(data)
 plot_hgis(data)
 ```
 
-### 2020-11-17 Dillution testing - back to good currents
+## 2020-11-17 Dillution testing - back to good currents
 
 Finally back to testing after figuring out current issue. Rerunning dilution test. Flows: live 11.6mL/min, dead 11.1, He 30.2. Pressures: cryo base 8E-8, turbo base 3E-7, w/live CO2 1.2E-6. Source producing ~8uA HE12C with live CO2. Data in USAMS101320.
 
@@ -274,7 +275,7 @@ data %>% filter(Pos %in% 5:10) %>%
 ```
 Doesn't seem to follow curves expected for a MBC with nearly live blank at about 1% of gas current.
 
-### 2020-12-03 Blank tests
+## 2020-12-03 Blank tests
 
 Ran a series of blank tests before exposing graphite samples or introducing live co2. 
 
@@ -289,7 +290,7 @@ sum_hgis(data)
 plot_hgis(data)
 ```
 
-#### Modeling Blank
+### Modeling Blank
 
 With these data we can start to think about modeling a mass balance, or more accurately, a current balance blank. It's not initally clear whether the blank comes from the target/source, dilluent helium, or a combination of the two.
 
@@ -309,7 +310,7 @@ TODO: Fit mass balance curve using currents
 TODO: Use bottle gas to produce live/dead curves 
 TODO: produce live/dead curves using helium dillution
 
-### 2020-12-11 open split flow reduction
+## 2020-12-11 open split flow reduction
 
 Testing reduced open split flows. Worked with flow controller (helium) and adjusted stops on live and dead co2 needle valves to allow lower flows. Tested for breakthrough by flowing helium through split and into source while blowing dead CO2 accross the opening of the split at ~10mL/min. CO2 seen in source somewhere between 100 and 300 uL/min. Hard to measure with this setup due to slow response time and lack of sensitivity of capillary/ion source. Need to try this with leak checker.
 
@@ -318,7 +319,6 @@ Reran blank tests at lower flows. Results seem as good or better than last week'
 TODO: get flows from notes.
 
 ```{r}
-names(data)
 data <- get_hgis_data(here("Data/USAMS120320R.txt")) %>% 
   filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11")
 sum_hgis(data)
@@ -332,6 +332,69 @@ plot_hgis(data)
 
 ```{r}
 data %>% filter(Pos %in% 9:12) %>% 
+  ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
+  geom_point()
+```
+
+## 2020-12-18 More testing of low open split flow rates
+
+Tested open split breakthrough at low flows using leak checker. Measured helium flow through capillary using leak checker. Ran target blanks, dead and live samples at low flows. Started building double needle testbed.
+
+### Leak checker flow rate
+
+Connected cage-split capillary to leak checker. Base leak rate with capillary in air: 1.7E-9 mbarLs-1. Leak rate with helium in open split: 3.5E-4 mbarls-1.
+
+### Leak checker breakthrough tests
+
+Flowing dead CO2 through split. Flowing helium across mouth of split at 8mLmin-1.
+
+```{r}
+lc_breakthrough <- tribble(~co2, ~leakrate,
+                          730, 6E-9,
+                          735, 6.5E-9,
+                          525, 7.9E-9,
+                          178, 1.3E-7,
+                          150, 2E-7,
+                          0, 3E-6)
+lc_breakthrough
+ggplot(lc_breakthrough, aes(co2, leakrate)) + geom_line() + geom_point()
+```
+
+### Data acquisitions at low(er) flows
+
+Source off base: 4E-8
+Cryo base (HV + Ion): 6E-8
+Turbo base: 2E-7
+
+Set SRS to 10uA/V and 50nA/V for 12 and 13C.
+
+Flows:
+
+```{r}
+flows <- tribble(~pos, ~Sample.Name, ~co2, ~he,
+                10, "DeadGas", 270, 0,
+                9, "DilDeadGas", 112, 288,
+                8, "DilDeadGas6", 102, 0,
+                8, "DeadGas", 102, 572-102,
+                7, "HeliumBlank", 0, 572-102,
+                7, "DilLiveGas6", 117, 576-117) %>% 
+  mutate(dil_ratio = he/co2)
+flows
+```
+
+        
+```{r}
+data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2020-12-18"))
+sum_hgis(data)
+```
+
+
+```{r}
+plot_hgis(data)
+```
+
+```{r}
+data %>% filter(Pos %in% 7:10) %>% 
   ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
