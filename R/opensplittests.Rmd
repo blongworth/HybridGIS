@@ -398,3 +398,19 @@ data %>% filter(Pos %in% 7:10) %>%
   ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
+## 2021-01-08 Pure gas precison testing
+
+Plumbed long 50um capillary from live CO2 regulator to cage wall fitting.
+
+```{r}
+data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2021-01-08"))
+sum_hgis(data)
+```
+
+
+```{r}
+plot_hgis(data)
+```
+```{r}
+View(data)
+```
