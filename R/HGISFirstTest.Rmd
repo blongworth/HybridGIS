@@ -12,8 +12,9 @@ First tests of the USAMS SNICS-134 Hybrid gas ion source. Where not specified, f
 ```{r libraries, warning=FALSE, message=FALSE}
 library(amstools)
 library(tidyverse)
-library(ggplot2)
 library(here)
+
+source(here("R/HGISFunctions.R"))
 
 theme_set(theme_minimal())
 ```
@@ -198,10 +199,6 @@ Two days of testing to date. Same wheel both days. Wheel had 5 AA, 4 OX-I, and
 
 ## USAMS032817
 
-```{r}
-data <- readResfile("/mnt/shared/USAMS/Results/2017 Results/USAMS032817R.txt") %>%
-  mungeResfile() 
-```
 
 
 ### Currents
@@ -231,6 +228,15 @@ ggplot(cur, aes(flow, he12c)) +
   geom_point() +
   ggtitle("Current vs Flow",
           subtitle = "2017-03-28")
+```
+
+```{r}
+data <- get_hgis_data(here("Data/USAMS032817R.txt")) %>%
+           mutate(Num = ifelse(Pos == 11, "U", Num))
+stdrat <- mean(data$cor1412he[data$Num == "S"])
+data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+# data <- readResfile("/mnt/shared/USAMS/Results/2017 Results/USAMS032817R.txt") %>%
+#   mungeResfile() 
 ```
 
 Currents were very stable after an initial burn in of ~10m. Initial current
@@ -263,24 +269,7 @@ and OX-I were run with 10 blocks of 180s. These results are summarized and rough
 #### Summary table
 
 ```{r}
-
-# mean of the solid OX-I's
-stdrat <- mean(c(10.0038, 9.9445))
-
-data.s <- data %>% 
-  group_by(Pos) %>% 
-  summarize(c1412.m = mean(X14.12he),
-            c1412.s = sd(X14.12he),
-            c1412.sdr = c1412.s/c1412.m,
-            c1412.se = se(X14.12he),
-            c1412.ser = c1412.se/c1412.m,
-            cor1412.m = mean(cor1412he),
-            counts = sum(CntTotGT),
-            interr = 1/sqrt(counts)) %>% 
-  mutate(normfm = cor1412.m/stdrat * 1.0398) 
-
-knitr::kable(data.s, digits = 4,
-             caption = "Summary data for US032817")
+sum_hgis(data)
 ```
 
 
@@ -326,7 +315,10 @@ ratio and current. The gas used was the modern standard, but the flask may not
 have been fully flushed.
 
 ```{r, message = FALSE}
-data2 <- readResfile("/mnt/shared/USAMS/Results/2017 Results/USAMS040317R.txt") %>%
+data <- get_hgis_data(here("Data/USAMS040317R.txt"))
+sum_hgis(data)
+
+data2 <- readResfile(here("Data/USAMS040317R.txt")) %>%
   filter(Pos == 13) %>%
   mungeResfile() 
 
@@ -357,9 +349,11 @@ d2.s <- data2 %>% group_by(Run, Bottle, Source, flow) %>% summarize(le12C = mean
                                               counts = sum(CntTotGT),
                                               interr = 1/sqrt(counts),
                                               C1412he = mean(X14.12he),
+                                              C1412he_sd = sd(X14.12he),
                                               ferr = interr * C1412he,
                                               cor1412he = mean(cor1412he),
                                               eff = mean(eff))
+d2.s
 ```
 
 #### Gas flow vs source pressure
