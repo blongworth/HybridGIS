@@ -391,7 +391,8 @@ Data from runs is in USAMS060618R.txt. Not 100% certain which samples are in whi
 
 ```{r}
 data <- get_hgis_data(here("Data/USAMS060618R.txt")) %>% 
-  filter(Pos != 1) %>% 
+  filter(Pos != 1,                           #remove spurious pos1 runs
+         !(Pos == 3 & X13.12he > 0.011)) %>%     #remove solid OX-I fliers
                   mutate(Num = ifelse(Pos %in% c(3, 4), "S", "U"))
 
 # Get mean ratio for solid OX-I and normalize data
@@ -407,6 +408,5 @@ sum_hgis(data)
 
 ```{r}
 plot_hgis(data)
-
 ```
 
