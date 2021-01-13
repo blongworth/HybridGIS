@@ -273,6 +273,7 @@ data %>% filter(Pos %in% 5:10) %>%
   ggplot(aes(he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
+
 Doesn't seem to follow curves expected for a MBC with nearly live blank at about 1% of gas current.
 
 ## 2020-12-03 Blank tests
@@ -402,6 +403,16 @@ data %>% filter(Pos %in% 7:10) %>%
 
 Plumbed long 50um capillary from live CO2 regulator to cage wall fitting.
 
+### Leak detector flow tests
+
+### Current vs flow and pressure
+
+### Data vs flow
+
+Took data on targets 6 and 7 at various CO2 flow rates.
+
+Data summary
+
 ```{r}
 data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2021-01-08"))
 ds <- sum_hgis(data)
@@ -413,11 +424,27 @@ ds
 plot_hgis(data)
 ```
 
-CO2 flow data show ratio dependence on flow. Need to fill in data to get shape of curve. 
+Took data for 4 different flows on target 6. CO2 flow data show ratio dependence on flow. Need to fill in data to get shape of curve. 
+Current vs flow
 
 ```{r}
 ds %>% 
   filter(Pos == 6) %>% 
-  ggplot(aes(Cur, mean)) + geom_point()
+  mutate(Pressure = as.numeric(str_extract(Sample.Name, "\\d+"))) %>% 
+  ggplot(aes(Pressure, Cur)) +
+  geom_pointrange(aes(ymin = Cur - Cur.sd, ymax = Cur + Cur.sd)) + 
+  geom_point(size = 4)
+
+```
+
+Fm vs. Flow. Note that solid standards had a lot of variability, so treat ratio as relative, not well normalized.
+
+```{r}
+ds %>% 
+  filter(Pos == 6) %>% 
+  mutate(Pressure = str_extract(Sample.Name, "\\d+")) %>% 
+  ggplot(aes(Cur, mean, shape = Pressure, color = Pressure)) +
+  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
+  geom_point(size = 4)
 ```
 
