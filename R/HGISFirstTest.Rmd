@@ -9,14 +9,14 @@ date: "03-28-2017"
 
 First tests of the USAMS SNICS-134 Hybrid gas ion source. Where not specified, flows are given in $\frac{\mu L}{m}$ and pressure in kPa, and ion currents are in uA of 12C.
 
-```{r libraries, warning=FALSE, message=FALSE}
-library(amstools)
+```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
+library(amstools)
 library(here)
+library(HybridGIS)
 
-source(here("R/HGISFunctions.R"))
-
-theme_set(theme_minimal())
+theme_set(theme_bw())
+options(digits = 3)
 ```
 
 # Flow rates
@@ -334,7 +334,7 @@ for (i in 1:nrow(data2)) {
 data2$Run <- Run
 
 # Load pressure data
-pres <- read.csv("../Data/USAMS040317Pressure.csv")
+pres <- read.csv(here("data/USAMS040317Pressure.csv"))
 pres$Run <- as.numeric(row.names(pres))
 
 # Join to run data

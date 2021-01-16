@@ -12,7 +12,8 @@ output:
 library(tidyverse)
 library(amstools)
 library(here)
-source(here('R/HGISFunctions.R'))
+library(HybridGIS)
+
 theme_set(theme_bw())
 options(digits = 3)
 ```
@@ -399,6 +400,7 @@ data %>% filter(Pos %in% 7:10) %>%
   ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
+
 ## 2021-01-08 Pure gas precison testing
 
 Plumbed long 50um capillary from live CO2 regulator to cage wall fitting.
@@ -446,5 +448,30 @@ ds %>%
   ggplot(aes(Cur, mean, shape = Pressure, color = Pressure)) +
   geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
   geom_point(size = 4)
+```
+
+## 2021-01-15 Precision and vial tests
+
+Used test vial setup to test pure CO2 precision and introduction of CO2 from vial by displacing with helium.
+
+```{r}
+df <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-15")) 
+stdrat <- mean(df$cor1412he[df$pos_name == "8 - LiveGasOS"])
+df <- mutate(df, normFm = norm_gas(cor1412he, stdrat))
+  
+sum_hgis(df)
+```
+
+```{r}
+plot_hgis_time(df) +
+  facet_wrap(vars(pos_name), scales = "fixed")
+
+ggplot(df, aes(cum_acqtime, he12C )) +
+  geom_point() + 
+  facet_wrap(vars(pos_name), scales = "fixed")
+```
+```{r}
+ggplot(df, aes(he12C, normFm, color = pos_name)) +
+  geom_point()
 ```
 

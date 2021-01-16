@@ -12,10 +12,10 @@ Load libraries and functions
 library(tidyverse)
 library(amstools)
 library(here)
+library(HybridGIS)
 
 theme_set(theme_bw())
-
-source(here('R/HGISFunctions.R'))
+options(digits = 3)
 ```
 
 ## 2017-07-31 Test flow rates using helium leak checker
