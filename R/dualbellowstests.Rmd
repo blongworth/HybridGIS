@@ -161,7 +161,7 @@ ggplot(data, aes(calflow, flow)) +
 
 Used black PEEK capillary. 
 ```{r}
-lpdata <- read.csv(here("Data/14Nov2017LPtest.csv"), skip = 4) %>%
+lpdata <- read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
   mutate(supply = supply / 10,
          source = source * 1E-7,
          flow = flowcalc(supply, 2E-5, 1.49E-5, 1.58))
@@ -196,7 +196,7 @@ inletp in mbar, sourcep in Torr, current in uA.
 
 ```{r}
 # load data
-beldat <- read_csv(here("Data/bellowsApr2518.csv"))
+beldat <- read_csv(here("data/bellowsApr2518.csv"))
 beldat
 ```
 
@@ -252,7 +252,7 @@ C-1 HY-31410 Pos 18
 pos 8 is ox-i graphite
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS052318RHIGS.txt"))
+data <- get_hgis_data(here("data/USAMS052318RHIGS.txt"))
 plot_hgis_time(data)
 ```
 
@@ -326,7 +326,7 @@ OX-II breakseal (GS-10016) run on position 6. 83.82umol CO2, 83mbar in inlet-SI.
 Load data from tests & runs
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS053018R.txt"), as.Date("2018-05-30")) %>% 
+data <- get_hgis_data(here("data/USAMS053018R.txt"), as.Date("2018-05-30")) %>% 
            mutate(Pos = ifelse(Sample.Name == "OX-II", 6, Pos),
                   pos_name = paste(Pos, Sample.Name, sep = " - "),
                   dil_factor = case_when(Pos == 5 ~ 972/100,
@@ -380,7 +380,7 @@ flowcalc(20, r, u, x)
 12C current vs source pressure before and after delivery arm realignment.
 
 ```{r}
-flowdat <- read.csv(here("Data/DIflowJun618.csv"))
+flowdat <- read.csv(here("data/DIflowJun618.csv"))
 ggplot(flowdat, aes(source, current, color = Alignment)) +
   geom_line() + geom_point() +
   labs(x = "Source pressure (Torr)", y = "Source current (uA)")
@@ -390,7 +390,7 @@ str(flowdat)
 Data from runs is in USAMS060618R.txt. Not 100% certain which samples are in which positions. Data look like 3 modern tank gas.
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS060618R.txt")) %>% 
+data <- get_hgis_data(here("data/USAMS060618R.txt")) %>% 
   filter(Pos != 1,                           #remove spurious pos1 runs
          !(Pos == 3 & X13.12he > 0.011)) %>%     #remove solid OX-I fliers
                   mutate(Num = ifelse(Pos %in% c(3, 4), "S", "U"))

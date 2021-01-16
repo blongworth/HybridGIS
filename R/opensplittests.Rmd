@@ -105,7 +105,7 @@ pressure in Torr, current in uA. Replumbed helium to panel open split with
 needle valve partway through to better control flow. Live CO2 set to 10mL/min.
 
 ```{r}
-osdil <- read_csv(here("Data/2018-05-31_dillution.csv")) %>% 
+osdil <- read_csv(here("data/2018-05-31_dillution.csv")) %>% 
   mutate(ratio = helium/co2)
 osdil
 ```
@@ -126,7 +126,7 @@ Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, diluted
 live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I. There are also dual inlet samples on this wheel, filtered out by date. Positions are incorrect in file because wheel was advanced manually. Correct positions in notebook and fixed below. Added correct dillution factors below.
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS053018R.txt"), 
+data <- get_hgis_data(here("data/USAMS053018R.txt"), 
                       as.Date(c("2018-05-30", "2018-05-31"))) %>% 
            filter(Pos %in% c(3,4) | as.Date(ts) == "2018-05-31") %>% 
            mutate(Pos = case_when(Sample.Name == "LiveGas" ~ 7,
@@ -202,7 +202,7 @@ Used positions 7-10, results in USAMS012220. Low currents: ~6uA pure CO2, 3uA di
 
 ```{r}
 # Load data
-data <- get_hgis_data(here("Data/USAMS012220R.txt"), 
+data <- get_hgis_data(here("data/USAMS012220R.txt"), 
                       as.Date(c("2020-09-10", "2020-09-29"))) %>% 
            mutate(dil_factor = ifelse(str_starts(Sample.Name, "Dil"), 1, 0), 
                   Num = ifelse(Pos == 7, "U", Num))
@@ -236,7 +236,7 @@ dead  11.1
 He    30.2
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS101320R.txt"), as.Date("2020-11-03"))
+data <- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-03"))
 sum_hgis(data)
 ```
 
@@ -252,7 +252,7 @@ Finally back to testing after figuring out current issue. Rerunning dilution tes
 Running positions 9 and 10 as 1:1 He dilutions of live and dead, respectively.
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS101320R.txt"), as.Date("2020-11-17"))
+data <- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-17"))
 sum_hgis(data)
 ```
 
@@ -281,7 +281,7 @@ Doesn't seem to follow curves expected for a MBC with nearly live blank at about
 Ran a series of blank tests before exposing graphite samples or introducing live co2. 
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2020-12-04"))
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-04"))
 sum_hgis(data)
 ```
 
@@ -320,7 +320,7 @@ Reran blank tests at lower flows. Results seem as good or better than last week'
 TODO: get flows from notes.
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS120320R.txt")) %>% 
+data <- get_hgis_data(here("data/USAMS120320R.txt")) %>% 
   filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11")
 sum_hgis(data)
 ```
@@ -385,7 +385,7 @@ flows
 
         
 ```{r}
-data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2020-12-18"))
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-18"))
 sum_hgis(data)
 ```
 
@@ -414,7 +414,7 @@ Took data on targets 6 and 7 at various CO2 flow rates.
 Data summary
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS120320R.txt"), as.Date("2021-01-08"))
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-08"))
 ds <- sum_hgis(data)
 ds
 ```

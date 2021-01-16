@@ -105,7 +105,7 @@ Kalina made measurements with both helium and CO2. The measurements below are
 with helium and converted to CO2 by the ratio of their viscosities.
 
 ```{r}
-bflow <- read.csv(here("Data/bubbleflow.csv")) %>%
+bflow <- read.csv(here("data/bubbleflow.csv")) %>%
   mutate(heflow = volume/time,
          flow = heflow * 1.49E-5/1.90E-5, # co2/He viscosity
          pressure = pressure - 14.7, # subract 1 Atm for delta P
@@ -135,7 +135,7 @@ flange. Pressures in kPa, leak rates in $\frac{Pa\cdot m^3}{s}$. Leak detector
 switched to gross leak mode between 150 kPa and 200 kPa.
 
 ```{r}
-ldflow <- read.csv(here("Data/HeLeakCapillaryFlow.csv"), skip = 3)
+ldflow <- read.csv(here("data/HeLeakCapillaryFlow.csv"), skip = 3)
 
 ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016, # convert to sccm
                  co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
@@ -210,7 +210,7 @@ le12C (~30% transmission @ 3+ charge state).
 Load and massage the data...
 
 ```{r}
-cur <- read_tsv(here("Data/2017-03-28Currents.tsv")) %>%
+cur <- read_tsv(here("data/2017-03-28Currents.tsv")) %>%
   mutate(flow = flowcalc(regp, r, u, x),
          eff = hgis_eff(flow, he12c, cs = 1)) %>% # cs 1 to estimate LE current
   filter(t > 5) 
@@ -231,7 +231,7 @@ ggplot(cur, aes(flow, he12c)) +
 ```
 
 ```{r}
-data <- get_hgis_data(here("Data/USAMS032817R.txt")) %>%
+data <- get_hgis_data(here("data/USAMS032817R.txt")) %>%
            mutate(Num = ifelse(Pos == 11, "U", Num))
 stdrat <- mean(data$cor1412he[data$Num == "S"])
 data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
@@ -315,10 +315,10 @@ ratio and current. The gas used was the modern standard, but the flask may not
 have been fully flushed.
 
 ```{r, message = FALSE}
-data <- get_hgis_data(here("Data/USAMS040317R.txt"))
+data <- get_hgis_data(here("data/USAMS040317R.txt"))
 sum_hgis(data)
 
-data2 <- readResfile(here("Data/USAMS040317R.txt")) %>%
+data2 <- readResfile(here("data/USAMS040317R.txt")) %>%
   filter(Pos == 13) %>%
   mungeResfile() 
 
