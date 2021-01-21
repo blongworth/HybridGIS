@@ -24,7 +24,7 @@ options(digits = 3)
 
 ## Calculated flow
 
-To model laminar flow in a capillary, Pouiselle's equation is used.
+To model laminar flow in a capillary, Poiseuille's equation is used.
 
 $$
 Q = \frac{\Delta P \pi R^4}{8 \mu \Delta x}
@@ -39,7 +39,7 @@ The following functions calculate flow using this equation and convert base
 units to more convenient flow in $\frac{\mu L}{m}$ and pressure in kPa.
 
 ```{r}
-# Pouiselle's; convert delta pressure in Pa to flow in m^3/s
+# Poiseuille's; convert delta pressure in Pa to flow in m^3/s
 prestoflow <- function(dp, r, u, l) {
   # r = radius of capillary
   # l = length of capillary
@@ -59,7 +59,7 @@ flowcalc <- function(pres, ...) {
 ```
 
 Initial tests used a 0.050mm x 8.2m deactivated silica caplillary. For this
-capillary, parameters for Pouiselle's equation are as follows:
+capillary, parameters for Poiseuille's equation are as follows:
 
 ```{r}
 r <- 2.5E-5
@@ -110,7 +110,7 @@ bflow <- read.csv(here("data/bubbleflow.csv")) %>%
          flow = heflow * 1.49E-5/1.90E-5, # co2/He viscosity
          pressure = pressure - 14.7, # subract 1 Atm for delta P
          pressure = pressure * 6.8948, # convert psi to kPa
-         calcflow = flowcalc(pressure, r, u, x)) # calculate flow with poiselles 
+         calcflow = flowcalc(pressure, r, u, x)) # calculate flow with Poiseuille's 
 
 ggplot(bflow, aes(pressure, flow)) + 
   geom_point() +
@@ -137,10 +137,11 @@ switched to gross leak mode between 150 kPa and 200 kPa.
 ```{r}
 ldflow <- read.csv(here("data/HeLeakCapillaryFlow.csv"), skip = 3)
 
-ldflow <- mutate(ldflow, sccm = Leakrate / 0.0016, # convert to sccm
-                 co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
-                 flow = co2sccm * 1E3, # convert to ul/m
-                 calcflow = flowcalc(Regulator, r, u, x)) # calculate flow with poiselles 
+ldflow <- ldflow %>% 
+  mutate(sccm = Leakrate / 0.0016, # convert to sccm
+         co2sccm = sccm * 1.49E-5/1.90E-5, # co2/He viscosity
+         flow = co2sccm * 1E3, # convert to ul/m
+         calcflow = flowcalc(Regulator, r, u, x)) # calculate flow with poiseulle's 
 
 ggplot(ldflow, aes(Regulator, flow)) + 
   geom_point() +
@@ -315,36 +316,38 @@ ratio and current. The gas used was the modern standard, but the flask may not
 have been fully flushed.
 
 ```{r, message = FALSE}
-data <- get_hgis_data(here("data/USAMS040317R.txt"))
+data <- get_hgis_data(here("data/USAMS040317R.txt")) %>% 
+  filter(Pos == 13)
+
 sum_hgis(data)
 
-data2 <- readResfile(here("data/USAMS040317R.txt")) %>%
-  filter(Pos == 13) %>%
-  mungeResfile() 
+# data <- readResfile(here("data/USAMS040317R.txt")) %>%
+#   filter(Pos == 13) %>%
+#   mungeResfile() 
 
 # Assign Run numbers
 counter <- 0
 Run <- c(1:190)
-for (i in 1:nrow(data2)) {
-  if (data2$Meas[i] == 1) {
+for (i in 1:nrow(data)) {
+  if (data$Meas[i] == 1) {
     counter <- counter + 1
   }
   Run[i] <- counter
 } 
-data2$Run <- Run
+data$Run <- Run
 
 # Load pressure data
 pres <- read.csv(here("data/USAMS040317Pressure.csv"))
 pres$Run <- as.numeric(row.names(pres))
 
 # Join to run data
-data2 <- inner_join(data2, pres) %>%
+data <- inner_join(data, pres) %>%
   mutate(Source = Source * 1E-7, # I think the source pressures were to the -7, but unsure...
          flow = flowcalc(Bottle, r, u, x),
          eff = hgis_eff(flow, he12C, cs = 1)) # cs 1 to estimate LE current
 
 # summarize
-d2.s <- data2 %>% group_by(Run, Bottle, Source, flow) %>% summarize(le12C = mean(le12C),
+d.s <- data %>% group_by(Run, Bottle, Source, flow) %>% summarize(le12C = mean(le12C),
                                               he12C = mean(he12C),
                                               counts = sum(CntTotGT),
                                               interr = 1/sqrt(counts),
@@ -353,16 +356,16 @@ d2.s <- data2 %>% group_by(Run, Bottle, Source, flow) %>% summarize(le12C = mean
                                               ferr = interr * C1412he,
                                               cor1412he = mean(cor1412he),
                                               eff = mean(eff))
-d2.s
+d.s
 ```
 
 #### Gas flow vs source pressure
 
 ```{r}
-ggplot(d2.s, aes(Bottle, Source)) + 
+ggplot(d.s, aes(Bottle, Source)) + 
   geom_smooth() +
   geom_point() 
-ggplot(d2.s, aes(flow, Source)) + 
+ggplot(d.s, aes(flow, Source)) + 
   geom_smooth() +
   geom_point() 
 ```
@@ -370,10 +373,10 @@ ggplot(d2.s, aes(flow, Source)) +
 #### Currents
 
 ```{r, message = FALSE, warning = FALSE}
-ggplot(d2.s, aes(Bottle, he12C)) +
+ggplot(d.s, aes(Bottle, he12C)) +
   geom_smooth() +
   geom_point() 
-filter(d2.s, flow > 0) %>%
+filter(d.s, flow > 0) %>%
   ggplot(aes(flow, le12C)) +
   geom_smooth() +
   geom_point() +
@@ -388,7 +391,7 @@ filter(d2.s, flow > 0) %>%
 #### Ratio vs current
 
 ```{r, message = FALSE, warning = FALSE}
-ggplot(d2.s, aes(he12C, C1412he)) + 
+ggplot(d.s, aes(he12C, C1412he)) + 
   geom_linerange(aes(ymin = C1412he - ferr, ymax = C1412he + ferr)) +
   geom_smooth() +
   geom_point() 
@@ -398,20 +401,15 @@ ggplot(d2.s, aes(he12C, C1412he)) +
 #### Efficiency
 
 ```{r, message = FALSE, warning = FALSE}
-ggplot(d2.s, aes(Bottle, eff)) + 
+ggplot(d.s, aes(Bottle, eff)) + 
   geom_smooth() +
   geom_point() 
-ggplot(d2.s, aes(Source, eff)) + 
+ggplot(d.s, aes(Source, eff)) + 
   geom_smooth() +
   geom_point() 
-ggplot(d2.s, aes(flow, eff*100)) + 
+ggplot(d.s, aes(flow, eff*100)) + 
   geom_smooth() +
   geom_point() +
   labs(x = expression(CO[2]~flow~rate~~mu~L %.% min^{-1}), y = "Measurement efficiency  %") +
   xlim(0,15.5)
 ```
-
-
-
-
-
