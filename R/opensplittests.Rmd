@@ -540,11 +540,13 @@ plot_hgis(data)
 Current vs flow
 
 ```{r}
-ds %>% 
+ds <- ds %>% 
   filter(Pos %in% c(5, 6)) %>% 
-  mutate(Pressure = as.numeric(str_extract(Sample.Name, "\\d+")),
-         Gas = ifelse(Pos == 5, "DeadCO2", "LiveCO2")) %>% 
-  ggplot(aes(Pressure, Cur, color = Gas)) +
+  mutate(Cur_inv = 1/Cur,
+         Pressure = as.numeric(str_extract(Sample.Name, "\\d+")),
+         Gas = ifelse(Pos == 5, "DeadCO2", "LiveCO2"))
+  
+ggplot(ds, aes(Pressure, Cur, color = Gas)) +
   geom_pointrange(aes(ymin = Cur - Cur.sd, ymax = Cur + Cur.sd)) + 
   geom_point(size = 4)
 
@@ -553,22 +555,16 @@ ds %>%
 Fm vs. Flow. Note that solid standards had a lot of variability, so treat ratio as relative, not well normalized.
 
 ```{r}
-ds %>% 
-  filter(Pos %in% c(5, 6)) %>% 
-  mutate(Pressure = str_extract(Sample.Name, "\\d+")) %>% 
-  ggplot(aes(Cur, mean, shape = Pressure, color = Pressure)) +
-  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
-  geom_point(size = 4)
+ggplot(ds, aes(Cur, mean, color = Pos)) +
+  geom_pointrange(aes(shape = factor(Pressure), ymin = mean - sd, ymax = mean + sd)) 
 ```
 
 Same vs inverse current with fits.
 
 
 ```{r}
-ds %>% 
-  filter(Pos %in% c(5, 6)) %>% 
-  mutate(Pressure = str_extract(Sample.Name, "\\d+")) %>% 
-  ggplot(aes(1/Cur, mean, shape = Pressure, color = Pressure)) +
-  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
-  geom_point(size = 4)
+ggplot(ds, aes(Cur_inv, mean, color = Pos)) +
+  geom_pointrange(aes(shape = factor(Pressure), ymin = mean - sd, ymax = mean + sd)) + 
+  geom_smooth(method = "lm", fullrange = TRUE) +
+  xlim(0, 5)
 ```
