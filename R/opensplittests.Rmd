@@ -277,9 +277,12 @@ data %>% filter(Pos %in% 5:10) %>%
 
 Doesn't seem to follow curves expected for a MBC with nearly live blank at about 1% of gas current.
 
-## 2020-12-03 Blank tests
+## 2020-12-04 Blank tests
 
 Ran a series of blank tests before exposing graphite samples or introducing live co2. 
+
+Capillary break between Target blank and Helium blank. Replaced with SGE 100um x 52cm.
+Initial currents of targets are high, between 10-25uA. Drops asymptotically to base target current in 5-10 minutes.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-04"))
@@ -294,23 +297,34 @@ plot_hgis(data)
 
 ### Modeling Blank
 
-With these data we can start to think about modeling a mass balance, or more accurately, a current balance blank. It's not initally clear whether the blank comes from the target/source, dilluent helium, or a combination of the two.
+With these data we can start to think about modeling a mass balance, or more accurately, a current balance blank. It's not initially clear whether the blank comes from the target/source, diluent helium, or a combination of the two.
 
 ```{r}
 data %>% filter(Pos %in% 9:12) %>% 
   ggplot(aes(he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
+If this blank follows the constant contamination model, plotting Fm vs. inverse current should give a linear fit. Need more data here to confirm fit and determine current and Fm of blank.
 
 ```{r}
-data %>% filter(Pos %in% 9:12) %>% 
-  ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
-  geom_point()
+# subset data
+gas <- data %>% filter(Pos %in% 9:12) %>% mutate(icur = 1/he12C) 
+# fit a linear model
+fitlm <- lm(normFm ~ icur, data = gas)
+
+
+# Add predicted values to data
+gas$pred = predict(fitlm)
+
+ggplot(gas) +
+  geom_line(aes(1/he12C, y = pred)) +
+  geom_point(aes(1/he12C, normFm, color = Sample.Name))
+
 ```
 
 TODO: Fit mass balance curve using currents
 TODO: Use bottle gas to produce live/dead curves 
-TODO: produce live/dead curves using helium dillution
+TODO: produce live/dead curves using helium dilution
 
 ## 2020-12-11 open split flow reduction
 
@@ -322,8 +336,26 @@ TODO: get flows from notes.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS120320R.txt")) %>% 
-  filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11")
-sum_hgis(data)
+  filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11") %>% 
+  mutate(he = case_when(Pos == 9 ~ (1059 - 383),
+                        Pos == 10 ~ 0,
+                        Pos == 11 ~ 1370,
+                        Pos == 12 ~ 0),
+         co2 = case_when(Pos == 9 ~ 383,
+                        Pos == 10 ~ 383,
+                        Pos == 11 ~ 0,
+                        Pos == 12 ~ 0),
+         dil_rat = he/co2)
+  
+data %>% 
+  group_by(Pos, Sample.Name, dil_rat) %>%
+  summarise(Cur = mean(he12C),
+            Cur.sd = sd(he12C),
+            mean = mean(normFm),
+            sd = sd(normFm),
+            interr = 1/sqrt(sum(CntTotGT)),
+            acqtime = sum(Cycles)/10,
+            N_acq = n()) 
 ```
 
 
@@ -333,9 +365,18 @@ plot_hgis(data)
 
 
 ```{r}
-data %>% filter(Pos %in% 9:12) %>% 
-  ggplot(aes(1/he12C, normFm, color = Sample.Name)) +
-  geom_point()
+# subset data
+gas <- data %>% filter(Pos %in% 9:12) %>% mutate(icur = 1/he12C) 
+# fit a linear model
+fitlm <- lm(normFm ~ icur, data = gas)
+
+
+# Add predicted values to data
+gas$Fm = predict(fitlm)
+
+ggplot(gas) +
+  geom_line(aes(1/he12C, Fm)) +
+  geom_point(aes(1/he12C, normFm, color = Sample.Name))
 ```
 
 ## 2020-12-18 More testing of low open split flow rates
@@ -344,8 +385,7 @@ Tested open split breakthrough at low flows using leak checker. Measured helium 
 
 ### Leak checker flow rate
 
-Connected cage-split capillary to leak checker. Base leak rate with capillary in air: 1.7E-9 mbarLs-1. Leak rate with helium in open split: 3.5E-4 mbarls-1.
-
+Connected cage-split capillary to leak checker. Base leak rate with capillary in air: 1.7E-9 mbarLs-1. Leak rate with helium in open split: 3.5E-4 mbarls-1. This is `r  ` SCCM.
 ### Leak checker breakthrough tests
 
 Flowing dead CO2 through split. Flowing helium across mouth of split at 8mLmin-1.
@@ -475,3 +515,60 @@ ggplot(df, aes(he12C, normFm, color = pos_name)) +
   geom_point()
 ```
 
+Question: Is ratio current depletion change in CO2 from vial or target degradation? Long pure CO2 run to test.
+
+
+## 2021-01-22 Pure gas precison testing
+
+Plumbed long 50um capillary from Valco valve to cage wall fitting. Plumbed dead CO2 to Valco with 1/16" ss.
+
+Took data with dead CO2 on target 5 at various CO2 flow rates. Same with liveCO2 on target 6. Source not performing well, low currents and current did not correspond well to CO2 pressure/flow. Current vs ratio data may still be useful for blank model. Solid currents good, so this is a gas issue. Gas blank also not great.
+
+Data summary
+
+```{r}
+data <- get_hgis_data(here("data/USAMS012121R.txt"), as.Date("2021-01-22"))
+ds <- sum_hgis(data)
+ds
+```
+
+
+```{r}
+plot_hgis(data)
+```
+
+Current vs flow
+
+```{r}
+ds %>% 
+  filter(Pos %in% c(5, 6)) %>% 
+  mutate(Pressure = as.numeric(str_extract(Sample.Name, "\\d+")),
+         Gas = ifelse(Pos == 5, "DeadCO2", "LiveCO2")) %>% 
+  ggplot(aes(Pressure, Cur, color = Gas)) +
+  geom_pointrange(aes(ymin = Cur - Cur.sd, ymax = Cur + Cur.sd)) + 
+  geom_point(size = 4)
+
+```
+
+Fm vs. Flow. Note that solid standards had a lot of variability, so treat ratio as relative, not well normalized.
+
+```{r}
+ds %>% 
+  filter(Pos %in% c(5, 6)) %>% 
+  mutate(Pressure = str_extract(Sample.Name, "\\d+")) %>% 
+  ggplot(aes(Cur, mean, shape = Pressure, color = Pressure)) +
+  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
+  geom_point(size = 4)
+```
+
+Same vs inverse current with fits.
+
+
+```{r}
+ds %>% 
+  filter(Pos %in% c(5, 6)) %>% 
+  mutate(Pressure = str_extract(Sample.Name, "\\d+")) %>% 
+  ggplot(aes(1/Cur, mean, shape = Pressure, color = Pressure)) +
+  geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
+  geom_point(size = 4)
+```
