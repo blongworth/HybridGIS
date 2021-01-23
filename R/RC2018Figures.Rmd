@@ -18,7 +18,7 @@ library(ggplot2)
 
 ## Calculated flow
 
-To model laminar flow in a capillary, Pouiselle's equation is used.
+To model laminar flow in a capillary, Poiseuille's equation is used.
 
 $$
 Q = \frac{\Delta P \pi R^4}{8 \mu \Delta x}
@@ -33,7 +33,7 @@ The following functions calculate flow using this equation and convert base
 units to more convenient flow in $\frac{\mu L}{m}$ and pressure in kPa.
 
 ```{r}
-# Pouiselle's; convert delta pressure in Pa to flow in m^3/s
+# Poiseuille's; convert delta pressure in Pa to flow in m^3/s
 prestoflow <- function(dp, r, u, l) {
   # r = radius of capillary
   # l = length of capillary
