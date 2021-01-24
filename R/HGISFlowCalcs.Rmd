@@ -8,7 +8,7 @@ output:
 
 ```{r}
 library(here)
-source(here("R/HGISFunctions.R"))
+library(HybridGIS)
 ```
 
 # Calculated Flow rates
@@ -44,8 +44,7 @@ flowcalc(100, r, u, x)
 Calculate flow for Xu et al 2006...
 
 ```{r}
-flowcalc(1.500, 12.5E-5, u, 1.25)
-
+flowcalc(1.500, 0.000125, u, 1.25)
 ```
 Calculate flow for ETH...
 
