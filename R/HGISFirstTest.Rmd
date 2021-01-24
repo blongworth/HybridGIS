@@ -58,7 +58,7 @@ flowcalc <- function(pres, ...) {
 }
 ```
 
-Initial tests used a 0.050mm x 8.2m deactivated silica caplillary. For this
+Initial tests used a 0.050mm x 8.2m deactivated silica capillary. For this
 capillary, parameters for Poiseuille's equation are as follows:
 
 ```{r}
@@ -86,7 +86,8 @@ flow <- function(f) {
 }
 ggplot(data = data.frame(pressure = 0, flow = 0),
        mapping = aes(x = pressure, y = flow)) +
-  stat_function(fun = flow) + xlim(0,400) +
+  stat_function(fun = flow) +
+  xlim(0,400) +
   ggtitle("Theoretical flow for given pressure",
           subtitle = "8.2m x 50um capillary")
 ```
@@ -113,6 +114,7 @@ bflow <- read.csv(here("data/bubbleflow.csv")) %>%
          calcflow = flowcalc(pressure, r, u, x)) # calculate flow with Poiseuille's 
 
 ggplot(bflow, aes(pressure, flow)) + 
+  stat_function(fun = flow, color = "blue") +
   geom_point() +
   geom_line() +
   xlim(0,400) + ylim(0,80) +
@@ -144,6 +146,7 @@ ldflow <- ldflow %>%
          calcflow = flowcalc(Regulator, r, u, x)) # calculate flow with poiseulle's 
 
 ggplot(ldflow, aes(Regulator, flow)) + 
+  stat_function(fun = flow, color = "blue") +
   geom_point() +
   geom_line() +
   ggtitle("Flow (measured by leak detector) vs pressure")
