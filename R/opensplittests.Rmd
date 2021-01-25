@@ -568,3 +568,5 @@ ggplot(ds, aes(Cur_inv, mean, color = Pos)) +
   geom_smooth(method = "lm", fullrange = TRUE) +
   xlim(0, 5)
 ```
+
+For these measurements, it looks like the blank is roughly 225nA at half modern. This is higher current and lower Fm than expected based on previous measurements. This is in line with the high blanks seen when measuring dead carbon.  
