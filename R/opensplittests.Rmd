@@ -510,8 +510,14 @@ ggplot(df, aes(cum_acqtime, he12C )) +
   geom_point() + 
   facet_wrap(vars(pos_name), scales = "fixed")
 ```
+
 ```{r}
 ggplot(df, aes(he12C, normFm, color = pos_name)) +
+  geom_point()
+```
+
+```{r}
+ggplot(df, aes(1/he12C, normFm, color = pos_name)) +
   geom_point()
 ```
 
@@ -557,6 +563,26 @@ Fm vs. Flow. Note that solid standards had a lot of variability, so treat ratio 
 ```{r}
 ggplot(ds, aes(Cur, mean, color = Pos)) +
   geom_pointrange(aes(shape = factor(Pressure), ymin = mean - sd, ymax = mean + sd)) 
+```
+
+Fit linear models
+
+```{r}
+library(broom)
+fits <- ds %>% 
+  ungroup() %>% 
+  nest(data = -Gas) %>% 
+  mutate(fit = map(data, ~lm(mean ~ Cur_inv, data = .x)),
+         tidied = map(fit, tidy)) %>% 
+  unnest(tidied) 
+
+fits %>% 
+  select(Gas, term, estimate) %>% 
+  pivot_wider(names_from = c(Gas, term), values_from = estimate) %>% 
+  mutate(inv_m_blank = -(`DeadCO2_(Intercept)` - `LiveCO2_(Intercept)`)/(DeadCO2_Cur_inv - LiveCO2_Cur_inv),
+         Fm_blank = `DeadCO2_(Intercept)` + DeadCO2_Cur_inv * inv_m_blank,
+         m_blank = 1/inv_m_blank) %>% 
+  select(Fm_blank, m_blank)
 ```
 
 Same vs inverse current with fits.
