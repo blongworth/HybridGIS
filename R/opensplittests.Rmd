@@ -4,8 +4,10 @@ output:
   html_document:
     df_print: paged
   pdf_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
-
 
 ```{r, message=FALSE, warning=FALSE}
 # Load libraries and functions
@@ -18,12 +20,13 @@ theme_set(theme_bw())
 options(digits = 3)
 ```
 
-Development notes for using the HGIS with an open split. Intention is to use
-with gasbench for carbonates and/or large co2 samples.
+Development notes for using the HGIS with an open split. Intention is to
+use with gasbench for carbonates and/or large co2 samples.
 
 # Capillary parameters
 
-Calculate ideal capillary to provide ~7.5uL/min at atmospheric pressure.
+Calculate ideal capillary to provide \~7.5uL/min at atmospheric
+pressure.
 
 ## Short capillary at 1 atm
 
@@ -35,19 +38,23 @@ u <- 1.49E-5
 x <- 3.5
 flowcalc(100, r, u, x)
 ```
+
 ```{r}
 r <- 2E-5
 u <- 1.49E-5
 x <- 2
 flowcalc(100, r, u, x)
 ```
+
 50um capillary
+
 ```{r}
 r <- 2.5E-5
 u <- 1.49E-5
 x <- 3
 flowcalc(100, r, u, x)
 ```
+
 ```{r}
 r <- 2.5E-5
 u <- 1.49E-5
@@ -55,17 +62,17 @@ x <- 7
 flowcalc(100, r, u, x)
 ```
 
-
 ## 2018-04-10 - First tests
 
-Tried a bunch of capillary combinations. Other than initial pressure burst when
-opening or closing HGIS valve, couldn't see any source pressure changes or beam
-current. We believe the source end of the stainless capillary was clogged by
-cesium residue. 
+Tried a bunch of capillary combinations. Other than initial pressure
+burst when opening or closing HGIS valve, couldn't see any source
+pressure changes or beam current. We believe the source end of the
+stainless capillary was clogged by cesium residue.
 
-Cleaned capillary end at next source cleaning, first with kimwipe and water,
-then with isopropanol. Lots of black crud. Confirmed open passage by blowing N2
-through capillary into cup of isopropanol to observe bubbles.
+Cleaned capillary end at next source cleaning, first with kimwipe and
+water, then with isopropanol. Lots of black crud. Confirmed open passage
+by blowing N2 through capillary into cup of isopropanol to observe
+bubbles.
 
 ## 2018-05-23 First tests
 
@@ -73,12 +80,14 @@ Tried 3m of 50um glass capillary. Insulated from source to cage with
 teflon tubing as outer jacket. No problems with sparks.
 
 Low currents, even when cutting capillary down to 2m. Either steel
-capillary is partially clogged or tip is not making good seal with target.
+capillary is partially clogged or tip is not making good seal with
+target.
 
 ## 2018-05-31 - He Dilution
 
-Open split set up with helium dilution. Using 100um glass capillary. ~50cm
-source to bulkhead with teflon jacket, 285cm bulkhead to open split. 
+Open split set up with helium dilution. Using 100um glass capillary.
+\~50cm source to bulkhead with teflon jacket, 285cm bulkhead to open
+split.
 
 ### Flows
 
@@ -86,24 +95,25 @@ source to bulkhead with teflon jacket, 285cm bulkhead to open split.
 flowcalc(100, r = 2.5E-5, u = 1.49E-5, l = 3.35)
 ```
 
-This is way too high. I may have been using a 50um capillary for the tests.
+This is way too high. I may have been using a 50um capillary for the
+tests.
 
 ### Pressures
 
-Table: Source pressures
+| Condition    | Torr  |
+|--------------|-------|
+| base w/cryo  | 1E-7  |
+| base w/turbo | 4E-7  |
+| capillary    | 36E-7 |
 
-Condition     Torr  
----------     ---- 
-base w/cryo   1E-7  
-base w/turbo  4E-7  
-capillary     36E-7 
-
+: Source pressures
 
 ### Dilution and current
 
-Flow and current tests with varying capillary and dilution. Flows in mL/min,
-pressure in Torr, current in uA. Replumbed helium to panel open split with
-needle valve partway through to better control flow. Live CO2 set to 10mL/min.
+Flow and current tests with varying capillary and dilution. Flows in
+mL/min, pressure in Torr, current in uA. Replumbed helium to panel open
+split with needle valve partway through to better control flow. Live CO2
+set to 10mL/min.
 
 ```{r}
 osdil <- read_csv(here("data/2018-05-31_dillution.csv")) %>% 
@@ -120,11 +130,15 @@ osdil %>%
     facet_grid(co2 ~ .)
 ```
 
-
 ### Test Acquisitions
 
-Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2, diluted
-live, diluted dead. Data are 14/12 ratio with a 13C correction applied. NormFm is values normalized to the ratio of the solid OX-I. There are also dual inlet samples on this wheel, filtered out by date. Positions are incorrect in file because wheel was advanced manually. Correct positions in notebook and fixed below. Added correct dillution factors below.
+Ran 4 test Acquisitions with open split: pure CO2, pure dead CO2,
+diluted live, diluted dead. Data are 14/12 ratio with a 13C correction
+applied. NormFm is values normalized to the ratio of the solid OX-I.
+There are also dual inlet samples on this wheel, filtered out by date.
+Positions are incorrect in file because wheel was advanced manually.
+Correct positions in notebook and fixed below. Added correct dillution
+factors below.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS053018R.txt"), 
@@ -146,23 +160,22 @@ data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
 sum_hgis(data)
 ```
 
-
 ```{r}
 plot_hgis(data)
 ```
-
-
 
 ## 2019-05-31 - startup tests
 
 Reinstalled gas delivery arm after cleaning and polishing ball end.
 
-Using 50um x .5m capillary source to cage and 50um x 2.5m to open split. Open split flowing modern co2 at 10mL/min. Using same targets and wheel as last time. Surprisingly good performance, including no-gas base current, hgis current and solid samples.
+Using 50um x .5m capillary source to cage and 50um x 2.5m to open split.
+Open split flowing modern co2 at 10mL/min. Using same targets and wheel
+as last time. Surprisingly good performance, including no-gas base
+current, hgis current and solid samples.
 
 ```{r}
 flowcalc(pres = 100, r = 2.5E-5, u = 1.49E-5, l = 3.0)
 ```
-
 
 Currents up to 15uA, source vac 8.3E-7 with gas on, 5.5E-7 with gas off.
 
@@ -183,23 +196,24 @@ dil <- tibble(
          ratio = He/CO2)
 dil
 ```
+
 ```{r}
 ggplot(dil, aes(ratio, cur)) +
   geom_line() +
   ggtitle("Current vs dillution ratio, CO2 at 10ml/min")
 ```
 
-
 ## 2020-09-10 Starting up HGIS
 
 Solid run on pos 1:4 on USAMS012220.
 
-
 ## 2020-09-29 Dilution vs Ratio
 
-Testing effect of helium dilution on ratio. Used remaining targets on USAMS012220. Reterminated capillaries at cage wall and at open split.
+Testing effect of helium dilution on ratio. Used remaining targets on
+USAMS012220. Reterminated capillaries at cage wall and at open split.
 
-Used positions 7-10, results in USAMS012220. Low currents: ~6uA pure CO2, 3uA diluted. Flows: He 10, deadCO2 11, liveCO2 10.
+Used positions 7-10, results in USAMS012220. Low currents: \~6uA pure
+CO2, 3uA diluted. Flows: He 10, deadCO2 11, liveCO2 10.
 
 ```{r}
 # Load data
@@ -212,7 +226,6 @@ data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
 sum_hgis(data)
 ```
 
-
 ```{r}
 plot_hgis(data)
 ```
@@ -221,26 +234,27 @@ Looks like diluted and undiluted live gas have the same ratio.
 
 ## 2020-10-15 New wheel, low currents
 
-Loaded a new wheel (USAMS101320) with 4 solid targets and 6 gas targets. Currents were low (3uA gas, 40uA solid) and didn't increase with tune, target position or gas arm position. Will clean source and try again.
-
+Loaded a new wheel (USAMS101320) with 4 solid targets and 6 gas targets.
+Currents were low (3uA gas, 40uA solid) and didn't increase with tune,
+target position or gas arm position. Will clean source and try again.
 
 ## 2020-11-03 Continued dillution tests
 
-Still very low currents, ~2uA for live CO2. Ran a dillution test anyway with positions 5-8 on USAMS101320. 
+Still very low currents, \~2uA for live CO2. Ran a dillution test anyway
+with positions 5-8 on USAMS101320.
 
 **Flows**
 
-Gas   Flow
----   ----
-live  10
-dead  11.1
-He    30.2
+| Gas  | Flow |
+|------|------|
+| live | 10   |
+| dead | 11.1 |
+| He   | 30.2 |
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-03"))
 sum_hgis(data)
 ```
-
 
 ```{r}
 plot_hgis(data)
@@ -248,9 +262,13 @@ plot_hgis(data)
 
 ## 2020-11-17 Dillution testing - back to good currents
 
-Finally back to testing after figuring out current issue. Rerunning dilution test. Flows: live 11.6mL/min, dead 11.1, He 30.2. Pressures: cryo base 8E-8, turbo base 3E-7, w/live CO2 1.2E-6. Source producing ~8uA HE12C with live CO2. Data in USAMS101320.
+Finally back to testing after figuring out current issue. Rerunning
+dilution test. Flows: live 11.6mL/min, dead 11.1, He 30.2. Pressures:
+cryo base 8E-8, turbo base 3E-7, w/live CO2 1.2E-6. Source producing
+\~8uA HE12C with live CO2. Data in USAMS101320.
 
-Running positions 9 and 10 as 1:1 He dilutions of live and dead, respectively.
+Running positions 9 and 10 as 1:1 He dilutions of live and dead,
+respectively.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-17"))
@@ -264,7 +282,6 @@ data %>% group_by(Sample.Name) %>%
   summarize(cps = mean(CntTotGT/(Cycles/10)))
 ```
 
-
 ```{r}
 plot_hgis(data)
 ```
@@ -275,21 +292,22 @@ data %>% filter(Pos %in% 5:10) %>%
   geom_point()
 ```
 
-Doesn't seem to follow curves expected for a MBC with nearly live blank at about 1% of gas current.
+Doesn't seem to follow curves expected for a MBC with nearly live blank
+at about 1% of gas current.
 
 ## 2020-12-04 Blank tests
 
-Ran a series of blank tests before exposing graphite samples or introducing live co2. 
+Ran a series of blank tests before exposing graphite samples or
+introducing live co2.
 
-Capillary break between Target blank and Helium blank. Replaced with SGE 100um x 52cm.
-Initial currents of targets are high, between 10-25uA. Drops asymptotically to base target current in 5-10 minutes.
+Capillary break between Target blank and Helium blank. Replaced with SGE
+100um x 52cm. Initial currents of targets are high, between 10-25uA.
+Drops asymptotically to base target current in 5-10 minutes.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-04"))
 sum_hgis(data)
 ```
-
-
 
 ```{r}
 plot_hgis(data)
@@ -297,14 +315,20 @@ plot_hgis(data)
 
 ### Modeling Blank
 
-With these data we can start to think about modeling a mass balance, or more accurately, a current balance blank. It's not initially clear whether the blank comes from the target/source, diluent helium, or a combination of the two.
+With these data we can start to think about modeling a mass balance, or
+more accurately, a current balance blank. It's not initially clear
+whether the blank comes from the target/source, diluent helium, or a
+combination of the two.
 
 ```{r}
 data %>% filter(Pos %in% 9:12) %>% 
   ggplot(aes(he12C, normFm, color = Sample.Name)) +
   geom_point()
 ```
-If this blank follows the constant contamination model, plotting Fm vs. inverse current should give a linear fit. Need more data here to confirm fit and determine current and Fm of blank.
+
+If this blank follows the constant contamination model, plotting Fm vs.
+inverse current should give a linear fit. Need more data here to confirm
+fit and determine current and Fm of blank.
 
 ```{r}
 # subset data
@@ -322,15 +346,23 @@ ggplot(gas) +
 
 ```
 
-TODO: Fit mass balance curve using currents
-TODO: Use bottle gas to produce live/dead curves 
-TODO: produce live/dead curves using helium dilution
+TODO: Fit mass balance curve using currents TODO: Use bottle gas to
+produce live/dead curves TODO: produce live/dead curves using helium
+dilution
 
 ## 2020-12-11 open split flow reduction
 
-Testing reduced open split flows. Worked with flow controller (helium) and adjusted stops on live and dead co2 needle valves to allow lower flows. Tested for breakthrough by flowing helium through split and into source while blowing dead CO2 accross the opening of the split at ~10mL/min. CO2 seen in source somewhere between 100 and 300 uL/min. Hard to measure with this setup due to slow response time and lack of sensitivity of capillary/ion source. Need to try this with leak checker.
+Testing reduced open split flows. Worked with flow controller (helium)
+and adjusted stops on live and dead co2 needle valves to allow lower
+flows. Tested for breakthrough by flowing helium through split and into
+source while blowing dead CO2 accross the opening of the split at
+\~10mL/min. CO2 seen in source somewhere between 100 and 300 uL/min.
+Hard to measure with this setup due to slow response time and lack of
+sensitivity of capillary/ion source. Need to try this with leak checker.
 
-Reran blank tests at lower flows. Results seem as good or better than last week's tests at high flows. This may also be due to targets being more pumped down or burned in.
+Reran blank tests at lower flows. Results seem as good or better than
+last week's tests at high flows. This may also be due to targets being
+more pumped down or burned in.
 
 TODO: get flows from notes.
 
@@ -358,11 +390,9 @@ data %>%
             N_acq = n()) 
 ```
 
-
 ```{r}
 plot_hgis(data)
 ```
-
 
 ```{r}
 # subset data
@@ -381,14 +411,20 @@ ggplot(gas) +
 
 ## 2020-12-18 More testing of low open split flow rates
 
-Tested open split breakthrough at low flows using leak checker. Measured helium flow through capillary using leak checker. Ran target blanks, dead and live samples at low flows. Started building double needle testbed.
+Tested open split breakthrough at low flows using leak checker. Measured
+helium flow through capillary using leak checker. Ran target blanks,
+dead and live samples at low flows. Started building double needle
+testbed.
 
 ### Leak checker flow rate
 
-Connected cage-split capillary to leak checker. Base leak rate with capillary in air: 1.7E-9 mbarLs-1. Leak rate with helium in open split: 3.5E-4 mbarls-1. This is `r  ` SCCM.
-### Leak checker breakthrough tests
+Connected cage-split capillary to leak checker. Base leak rate with
+capillary in air: 1.7E-9 mbarLs-1. Leak rate with helium in open split:
+3.5E-4 mbarls-1. This is `r` SCCM. \#\#\# Leak checker breakthrough
+tests
 
-Flowing dead CO2 through split. Flowing helium across mouth of split at 8mLmin-1.
+Flowing dead CO2 through split. Flowing helium across mouth of split at
+8mLmin-1.
 
 ```{r}
 lc_breakthrough <- tribble(~co2, ~leakrate,
@@ -404,9 +440,7 @@ ggplot(lc_breakthrough, aes(co2, leakrate)) + geom_line() + geom_point()
 
 ### Data acquisitions at low(er) flows
 
-Source off base: 4E-8
-Cryo base (HV + Ion): 6E-8
-Turbo base: 2E-7
+Source off base: 4E-8 Cryo base (HV + Ion): 6E-8 Turbo base: 2E-7
 
 Set SRS to 10uA/V and 50nA/V for 12 and 13C.
 
@@ -424,12 +458,10 @@ flows <- tribble(~pos, ~Sample.Name, ~co2, ~he,
 flows
 ```
 
-        
 ```{r}
 data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-18"))
 sum_hgis(data)
 ```
-
 
 ```{r}
 plot_hgis(data)
@@ -443,7 +475,8 @@ data %>% filter(Pos %in% 7:10) %>%
 
 ## 2021-01-08 Pure gas precison testing
 
-Plumbed long 50um capillary from live CO2 regulator to cage wall fitting.
+Plumbed long 50um capillary from live CO2 regulator to cage wall
+fitting.
 
 ### Leak detector flow tests
 
@@ -461,13 +494,13 @@ ds <- sum_hgis(data)
 ds
 ```
 
-
 ```{r}
 plot_hgis(data)
 ```
 
-Took data for 4 different flows on target 6. CO2 flow data show ratio dependence on flow. Need to fill in data to get shape of curve. 
-Current vs flow
+Took data for 4 different flows on target 6. CO2 flow data show ratio
+dependence on flow. Need to fill in data to get shape of curve. Current
+vs flow
 
 ```{r}
 ds %>% 
@@ -479,7 +512,8 @@ ds %>%
 
 ```
 
-Fm vs. Flow. Note that solid standards had a lot of variability, so treat ratio as relative, not well normalized.
+Fm vs. Flow. Note that solid standards had a lot of variability, so
+treat ratio as relative, not well normalized.
 
 ```{r}
 ds %>% 
@@ -492,7 +526,8 @@ ds %>%
 
 ## 2021-01-15 Precision and vial tests
 
-Used test vial setup to test pure CO2 precision and introduction of CO2 from vial by displacing with helium.
+Used test vial setup to test pure CO2 precision and introduction of CO2
+from vial by displacing with helium.
 
 ```{r}
 df <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-15")) 
@@ -521,14 +556,19 @@ ggplot(df, aes(1/he12C, normFm, color = pos_name)) +
   geom_point()
 ```
 
-Question: Is ratio current depletion change in CO2 from vial or target degradation? Long pure CO2 run to test.
-
+Question: Is ratio current depletion change in CO2 from vial or target
+degradation? Long pure CO2 run to test.
 
 ## 2021-01-22 Pure gas precison testing
 
-Plumbed long 50um capillary from Valco valve to cage wall fitting. Plumbed dead CO2 to Valco with 1/16" ss.
+Plumbed long 50um capillary from Valco valve to cage wall fitting.
+Plumbed dead CO2 to Valco with 1/16" ss.
 
-Took data with dead CO2 on target 5 at various CO2 flow rates. Same with liveCO2 on target 6. Source not performing well, low currents and current did not correspond well to CO2 pressure/flow. Current vs ratio data may still be useful for blank model. Solid currents good, so this is a gas issue. Gas blank also not great.
+Took data with dead CO2 on target 5 at various CO2 flow rates. Same with
+liveCO2 on target 6. Source not performing well, low currents and
+current did not correspond well to CO2 pressure/flow. Current vs ratio
+data may still be useful for blank model. Solid currents good, so this
+is a gas issue. Gas blank also not great.
 
 Data summary
 
@@ -537,7 +577,6 @@ data <- get_hgis_data(here("data/USAMS012121R.txt"), as.Date("2021-01-22"))
 ds <- sum_hgis(data)
 ds
 ```
-
 
 ```{r}
 plot_hgis(data)
@@ -558,7 +597,8 @@ ggplot(ds, aes(Pressure, Cur, color = Gas)) +
 
 ```
 
-Fm vs. Flow. Note that solid standards had a lot of variability, so treat ratio as relative, not well normalized.
+Fm vs. Flow. Note that solid standards had a lot of variability, so
+treat ratio as relative, not well normalized.
 
 ```{r}
 ggplot(ds, aes(Cur, mean, color = Pos)) +
@@ -587,7 +627,6 @@ fits %>%
 
 Same vs inverse current with fits.
 
-
 ```{r}
 ggplot(ds, aes(Cur_inv, mean, color = Pos)) +
   geom_pointrange(aes(shape = factor(Pressure), ymin = mean - sd, ymax = mean + sd)) + 
@@ -595,4 +634,94 @@ ggplot(ds, aes(Cur_inv, mean, color = Pos)) +
   xlim(0, 5)
 ```
 
-For these measurements, it looks like the blank is roughly 225nA at half modern. This is higher current and lower Fm than expected based on previous measurements. This is in line with the high blanks seen when measuring dead carbon.  
+For these measurements, it looks like the blank is roughly 225nA at half
+modern. This is higher current and lower Fm than expected based on
+previous measurements. This is in line with the high blanks seen when
+measuring dead carbon.
+
+## 2021-01-29 Reproducibility between multiple vials
+
+Measured live and dead CO2 from vials. "STD" samples were displaced to
+split with flowing CO2, while the "V" samples were displaced by helium
+as they would be for unknowns. All samples measured on fresh targets
+after a 5 minute "burn in" to reduce blank.
+
+### Flows
+
+Replaced capillary from Valco valve to double needle with longer piece
+of 50um capillary. Set helium and CO2 flows.
+
++----------------------+-----------------------+-----------------------+
+| Gas                  | Pressure (kPa)        | Flow (uL/min)         |
++======================+=======================+=======================+
+| LiveCO2              | 165                   | 136                   |
++----------------------+-----------------------+-----------------------+
+| DeadCO2              | 160                   | 120                   |
++----------------------+-----------------------+-----------------------+
+| Helium               | 165                   | 115                   |
++----------------------+-----------------------+-----------------------+
+
+: Gas flow rates
+
+Measured split to cage wall capillary flow with leak checker. Leak rate: 1.0E-5 Pa m^3/s.
+
+### Data
+
+Normalizing to solid OX-I's. 
+
+```{r}
+data <- get_hgis_data(here("data/USAMS012121R.txt"), as.Date("2021-01-29")) %>% 
+  mutate(Num = ifelse(Pos %in% c(7, 9), "U", Num)) %>% 
+  group_by(Pos) %>% 
+         mutate(outlier = ifelse(is.na(removeOutliers(cor1412he)), TRUE, FALSE))
+```
+
+Currents and ratios vs time.
+
+```{r}
+plot_hgis_time(data) +
+  geom_point(aes(color = outlier)) +
+  facet_wrap(vars(pos_name), scales = "free")
+
+ggplot(data, aes(cum_acqtime, he12C )) +
+  geom_point(aes(color = outlier)) +
+  facet_wrap(vars(pos_name), scales = "free")
+```
+
+
+```{r}
+# Get mean ratio for solid OX-I and normalize data
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+```
+
+
+```{r}
+ds <- data %>% 
+  filter(!outlier) %>% 
+  sum_hgis()
+ds
+```
+
+```{r}
+plot_hgis(data)
+```
+
+
+### Agreement of replicates
+
+Summary statistics to look at reproducibility between targets/vials.
+
+```{r}
+ds %>% 
+  filter(as.numeric(Pos) > 4,
+         Pos != 9) %>%  # Don't use bad target
+  mutate(gas = ifelse(str_starts(Sample.Name, "Live"), "Live", "Dead"),
+         helium = ifelse(str_detect(Sample.Name, "V\\d$"), TRUE, FALSE)) %>% 
+  group_by(gas, helium) %>% 
+  summarize(Fm.mean = mean(mean),
+            Fm.sd = sd(mean),
+            N = n())
+```
+
+It looks like the SD of modern samples is around 1%, and that pure CO2 performs slightly better than helium displacement.
