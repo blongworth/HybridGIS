@@ -1,0 +1,78 @@
+---
+title: "Helium displacement"
+output:
+  html_document:
+    df_print: paged
+---
+
+Calculate concentration of CO2 in a vial/effluent when introducing helium as a displacement gas.
+
+```{r, message=FALSE}
+library(tidyverse)
+```
+
+I think this can be solved with ODE:
+
+Change in concentration over time...
+
+$$ C^\prime(t) = r - \frac{r}{V}C(t) $$
+
+Add some math...
+
+$$ C(t) = V(1-e^{-\frac{r}{V}t}) $$
+
+Put this into functions.
+
+```{r}
+conc <- function(t) {
+  V <- 7000
+  r <- 100
+  V*(1-exp(-(r/V)*t))
+}
+
+concco2 <- function(t) {
+  V <- 7000
+  V - conc(t)
+}
+```
+
+Plotted as volume of CO2 and helium
+
+```{r}
+data.frame(x = 0:400) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=conc, color = "blue") +
+  stat_function(fun=concco2, color = "green") +
+  labs(title = "Volume of CO2 and Helium in vial over time",
+       subtitle = "7mL vial, 0.1mL/min helium",
+       x = "Time (min)",
+       y = "Volume (uL)")
+```
+
+And as fractional concentration
+
+```{r}
+data.frame(x = 0:400) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=function(x) conc(x)/7000, color = "blue") +
+  stat_function(fun=function(x) concco2(x)/7000, color = "green") +
+  labs(title = "Fraction of CO2 and Helium in vial over time",
+       subtitle = "7mL vial, 0.1mL/min helium",
+       x = "Time (min)",
+       y = "Fractional composition")
+```
+
+OK, what's the rate of flow of CO2 over time, in the effluent, and in a capillary taking Q/t ul/m?
+
+If the vial is 7mL, flowing at 100ul/m and sampling 20ul/m with the open split, CO2 ul/m looks like:
+
+```{r}
+data.frame(x = 0:400) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=function(x) concco2(x)/7000*20, color = "green") +
+  labs(title = "Flow of CO2 to source over time",
+       subtitle = "7mL vial, 0.1mL/min helium, 20uL/min to source",
+       x = "Time (min)",
+       y = "Flow (uL/min)")
+```
+
