@@ -137,7 +137,7 @@ diluted live, diluted dead. Data are 14/12 ratio with a 13C correction
 applied. NormFm is values normalized to the ratio of the solid OX-I.
 There are also dual inlet samples on this wheel, filtered out by date.
 Positions are incorrect in file because wheel was advanced manually.
-Correct positions in notebook and fixed below. Added correct dillution
+Correct positions in notebook and fixed below. Added correct dilution
 factors below.
 
 ```{r}
@@ -355,8 +355,8 @@ dilution
 Testing reduced open split flows. Worked with flow controller (helium)
 and adjusted stops on live and dead co2 needle valves to allow lower
 flows. Tested for breakthrough by flowing helium through split and into
-source while blowing dead CO2 accross the opening of the split at
-\~10mL/min. CO2 seen in source somewhere between 100 and 300 uL/min.
+source while blowing dead CO2 across the opening of the split at
+~10mL/min. CO2 seen in source somewhere between 100 and 300 uL/min.
 Hard to measure with this setup due to slow response time and lack of
 sensitivity of capillary/ion source. Need to try this with leak checker.
 
@@ -420,8 +420,9 @@ testbed.
 
 Connected cage-split capillary to leak checker. Base leak rate with
 capillary in air: 1.7E-9 mbarLs-1. Leak rate with helium in open split:
-3.5E-4 mbarls-1. This is `r` SCCM. \#\#\# Leak checker breakthrough
-tests
+3.5E-4 mbarls-1. This is `r` SCCM. 
+
+### Leak checker breakthrough tests
 
 Flowing dead CO2 through split. Flowing helium across mouth of split at
 8mLmin-1.
