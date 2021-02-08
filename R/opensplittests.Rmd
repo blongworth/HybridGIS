@@ -726,3 +726,87 @@ ds %>%
 ```
 
 It looks like the SD of modern samples is around 1%, and that pure CO2 performs slightly better than helium displacement.
+
+## 2021-02-05 Carbonate samples
+
+Measured carbonate samples prepared on gasbench. Samples included C-1, TIRI-F, TIRI-I, C-2, and NOSAMS2. Normalized to gas standards or solid OX-I.
+
+First carbonate sample clogged capillary. Moved needle up to avoid sucking in acid. May need to consider a water trap. All samples measured on fresh targets after a 5 minute "burn in" to reduce blank.
+
+### Samples
+
+Insert table here.
+
+### Flows
+
+Set helium and CO2 flows.
+
++----------------------+-----------------------+-----------------------+
+| Gas                  | Pressure (kPa)        | Flow (uL/min)         |
++======================+=======================+=======================+
+| LiveCO2              | 150                   | 95                    |
++----------------------+-----------------------+-----------------------+
+| Helium               | 150                   | 97                    |
++----------------------+-----------------------+-----------------------+
+
+: Gas flow rates
+
+### Data
+
+Normalizing to solid OX-I's. 
+
+```{r}
+data <- get_hgis_data(here("data/USAMS020521R.txt")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "U", Num)) %>% 
+  group_by(Pos) %>% 
+         mutate(outlier = ifelse(is.na(removeOutliers(cor1412he)), TRUE, FALSE))
+```
+
+Currents and ratios vs time.
+
+```{r}
+plot_hgis_time(data) +
+  geom_point(aes(color = outlier)) +
+  facet_wrap(vars(pos_name), scales = "free")
+
+ggplot(data, aes(cum_acqtime, he12C )) +
+  geom_point(aes(color = outlier)) +
+  facet_wrap(vars(pos_name), scales = "free")
+```
+
+
+```{r}
+# Get mean ratio for solid OX-I and normalize data
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+```
+
+
+```{r}
+ds <- data %>% 
+  filter(!outlier) %>% 
+  sum_hgis()
+ds[-(1:4),-3]
+```
+
+```{r}
+plot_hgis(data)
+```
+
+
+### Agreement of replicates
+
+Summary statistics to look at reproducibility between targets/vials.
+
+```{r}
+ds %>% 
+  filter(as.numeric(Pos) > 4,
+         Pos != 6) %>% # Don't use bad target
+  mutate(Name = ifelse(Pos %in% c(5,8), "LiveGas", Sample.Name)) %>% 
+  group_by(Name) %>% 
+  summarize(Fm.mean = mean(mean),
+            Fm.sd = sd(mean),
+            N = n())
+```
+
+It looks like the SD of modern samples is around 1%. Fm of NOSAMS 2 is a bit high. Need to investigate current-dependent blank.
