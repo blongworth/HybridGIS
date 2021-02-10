@@ -731,9 +731,10 @@ It looks like the SD of modern samples is around 1%, and that pure CO2 performs 
 
 Measured carbonate samples prepared on gasbench. Samples included C-1, TIRI-F, TIRI-I, C-2, and NOSAMS2. Normalized to gas standards or solid OX-I.
 
-First carbonate sample clogged capillary. Moved needle up to avoid sucking in acid. May need to consider a water trap. All samples measured on fresh targets after a 5 minute "burn in" to reduce blank.
+First carbonate sample clogged capillary. Capillary replaced, moved needle up to avoid sucking in acid. Was not able to get good currents after replacing capillary, even trying several length/capillary combinations. Source vacuum indicates normal amount of gas entering source. May need to consider a water trap. All samples measured on fresh targets after a 5 minute "burn in" to reduce blank.
 
 ### Samples
+
 
 Insert table here.
 
@@ -785,7 +786,19 @@ data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
 ```{r}
 ds <- data %>% 
   filter(!outlier) %>% 
-  sum_hgis()
+  sum_hgis() %>% 
+  mutate(rec_num = case_when(str_starts(Sample.Name, "LiveGas") ~ 101730,
+                             Sample.Name == "C-1" ~ 83028,
+                             Sample.Name == "TIRI-F" ~ 2138,
+                             Sample.Name == "TIRI-I" ~ 17185,
+                             Sample.Name == "C-2" ~ 1082,
+                             Sample.Name == "NOSAMS2" ~ 38809))
+
+std <- getStdTable()
+
+ds <- left_join(ds, select(std, rec_num, fm_consensus)) %>% 
+  mutate(fm_consensus = ifelse(rec_num == 101730, 1.0398, fm_consensus))
+
 ds[-(1:4),-3]
 ```
 
@@ -796,14 +809,14 @@ plot_hgis(data)
 
 ### Agreement of replicates
 
-Summary statistics to look at reproducibility between targets/vials.
+Summary statistics to look at reproducibility, accuracy between targets/vials.
 
 ```{r}
 ds %>% 
   filter(as.numeric(Pos) > 4,
          Pos != 6) %>% # Don't use bad target
   mutate(Name = ifelse(Pos %in% c(5,8), "LiveGas", Sample.Name)) %>% 
-  group_by(Name) %>% 
+  group_by(Name, fm_consensus) %>% 
   summarize(Fm.mean = mean(mean),
             Fm.sd = sd(mean),
             N = n())
