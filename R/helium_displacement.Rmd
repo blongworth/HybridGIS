@@ -9,6 +9,7 @@ Calculate concentration of CO2 in a vial/effluent when introducing helium as a d
 
 ```{r, message=FALSE}
 library(tidyverse)
+library(HybridGIS)
 ```
 
 I think this can be solved with ODE:
@@ -25,15 +26,13 @@ The fraction of CO2 in the effluent should be:
 
 $$ C(t) = e^{-\frac{r}{V}t} $$
 
-Put this into functions.
+Put this into functions. Main function moved to HGISFunctions.R and documented there.
 
 ```{r}
-conc <- function(t, V = 7000, r = 100) {
-  exp(-(r/V)*t)
-}
+concCO2
 
 concHe <- function(t, ...) {
-  1 - conc(t)
+  1 - concCO2(t)
 }
 ```
 
@@ -42,7 +41,7 @@ Plotted as fraction of CO2 and helium
 ```{r}
 data.frame(x = 0:400) %>% 
   ggplot(aes(x)) +
-  stat_function(fun=conc, color = "blue") +
+  stat_function(fun=concCO2, color = "blue") +
   stat_function(fun=concHe, color = "green") +
   labs(title = "Concentration of CO2 and Helium in vial over time",
        subtitle = "7mL vial, 100uL/min helium",
@@ -57,10 +56,37 @@ If the vial is 7mL, flowing at 100ul/m and sampling 20ul/m with the open split, 
 ```{r}
 data.frame(x = 0:400) %>% 
   ggplot(aes(x)) +
-  stat_function(fun=function(x) conc(x)*20, color = "green") +
+  stat_function(fun=function(x) concCO2(x, flow = 20), color = "blue") +
+  stat_function(fun=function(x) 20 - concCO2(x, flow = 20), color = "green") +
   labs(title = "Flow of CO2 to source over time",
        subtitle = "7mL vial, 0.1mL/min helium, 20uL/min to source",
        x = "Time (min)",
        y = "Flow (uL/min)")
 ```
 
+## High dillution 
+
+Model case of small amount of CO2 in He in vial. Requires higher capillary flow to source to maintain ~5uL/min CO2 to source in helium. This also requires higher displacement flow to maintain split ratio.
+
+```{r}
+data.frame(x = 0:400) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=function(x) concCO2(x, r = 200, flow = 100), color = "blue") +
+  stat_function(fun=function(x) 100 - concCO2(x, r = 200, flow = 100), color = "green") +
+  labs(title = "Flow of CO2 to source over time",
+       subtitle = "7mL vial, 0.2mL/min helium, 100uL/min to source",
+       x = "Time (min)",
+       y = "Flow (uL/min)")
+```
+
+Zooming in on flows around 5uL/min CO2 to source
+
+```{r}
+data.frame(x = 100:200) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=function(x) concCO2(x, r = 200, flow = 100), color = "blue") +
+  labs(title = "Flow of CO2 to source over time",
+       subtitle = "7mL vial, 0.2mL/min helium, 100uL/min to source",
+       x = "Time (min)",
+       y = "Flow (uL/min)")
+```
