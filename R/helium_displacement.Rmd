@@ -79,7 +79,7 @@ data.frame(x = 0:400) %>%
        y = "Flow (uL/min)")
 ```
 
-Zooming in on flows around 5uL/min CO2 to source
+Zooming in on flows around 5uL/min CO2 to source in 100uL/min He
 
 ```{r}
 data.frame(x = 100:200) %>% 
@@ -87,6 +87,17 @@ data.frame(x = 100:200) %>%
   stat_function(fun=function(x) concCO2(x, r = 200, flow = 100), color = "blue") +
   labs(title = "Flow of CO2 to source over time",
        subtitle = "7mL vial, 0.2mL/min helium, 100uL/min to source",
+       x = "Time (min)",
+       y = "Flow (uL/min)")
+```
+
+
+```{r}
+data.frame(x = 100:200) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=function(x) concCO2(x, r = 200, flow = 200), color = "blue") +
+  labs(title = "Flow of CO2 to source over time",
+       subtitle = "7mL vial, 0.2mL/min helium, 200uL/min to source",
        x = "Time (min)",
        y = "Flow (uL/min)")
 ```
