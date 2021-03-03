@@ -158,7 +158,7 @@ data <- get_hgis_data(here("data/USAMS053018R.txt"),
                   Num = ifelse(Pos %in% c(3, 4), "S", Num))
 
 # Get mean ratio for solid OX-I and normalize data
-stdrat <- mean(data$cor1412he[data$Num == "S"])
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
 data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
                   
 sum_hgis(data)
@@ -227,7 +227,7 @@ data <- get_hgis_data(here("data/USAMS012220R.txt"),
                       as.Date(c("2020-09-10", "2020-09-29"))) %>% 
            mutate(dil_factor = ifelse(str_starts(Sample.Name, "Dil"), 1, 0), 
                   Num = ifelse(Pos == 7, "U", Num))
-stdrat <- mean(data$cor1412he[data$Num == "S"])
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
 data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
 sum_hgis(data)
 ```
@@ -565,7 +565,7 @@ ds %>%
   ggplot(aes(Cur, mean, shape = Pressure, color = Pressure)) +
   geom_pointrange(aes(ymin = mean - sd, ymax = mean + sd)) + 
   geom_point(size = 4) +
-  ggtitle("C12 current vs. CO2 regulator pressure")
+  ggtitle("Fm vs. C12 current for varying CO2 regulator pressure")
 ```
 
 ## 2021-01-15 Precision and vial tests
@@ -576,7 +576,7 @@ from vial by displacing with helium.
 ### Data 
 ```{r}
 df <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-15")) 
-stdrat <- mean(df$cor1412he[df$pos_name == "8 - LiveGasOS"])
+stdrat <- mean(df$cor1412he[df$pos_name == "8 - LiveGasOS" & !df$outlier])
 df <- mutate(df, normFm = norm_gas(cor1412he, stdrat))
   
 sum_hgis(df)
@@ -736,21 +736,21 @@ Normalizing to solid OX-I's.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS012121R.txt"), as.Date("2021-01-29")) %>% 
-  mutate(Num = ifelse(Pos %in% c(7, 9), "U", Num)) %>% 
-  group_by(Pos) %>% 
-         mutate(outlier = ifelse(is.na(removeOutliers(cor1412he)), TRUE, FALSE))
+  mutate(Num = ifelse(Pos %in% c(7, 9), "U", Num))
 ```
 
 #### Currents and ratios vs time.
 
-```{r}
-plot_hgis_time(data) +
-  geom_point(aes(color = outlier)) +
-  facet_wrap(vars(pos_name), scales = "free")
+Sample ratio vs. time
 
-ggplot(data, aes(cum_acqtime, he12C )) +
-  geom_point(aes(color = outlier)) +
-  facet_wrap(vars(pos_name), scales = "free")
+```{r}
+plot_hgis_time(data, cor1412he, ce*cor1412he)
+```
+
+Sample current vs time
+
+```{r}
+plot_hgis_time(data, he12C)
 ```
 
 
@@ -837,23 +837,24 @@ Normalizing to gas standards in pos 5 and 8.
 
 ```{r}
 data <- get_hgis_data(here("data/USAMS020521R.txt")) %>% 
-  mutate(Num = ifelse(Pos %in% c(2, 4), "U", Num)) %>% 
-  group_by(Pos) %>% 
-         mutate(outlier = ifelse(is.na(removeOutliers(cor1412he)), TRUE, FALSE))
+  mutate(Num = ifelse(Pos %in% c(2, 4), "U", Num))
 ```
 
 #### Currents and ratios vs time.
 
-```{r}
-plot_hgis_time(data) +
-  geom_point(aes(color = outlier)) +
-  facet_wrap(vars(pos_name), scales = "free")
+Sample ratio vs. time
 
-ggplot(data, aes(cum_acqtime, he12C )) +
-  geom_point(aes(color = outlier)) +
-  facet_wrap(vars(pos_name), scales = "free")
+```{r}
+plot_hgis_time(data, cor1412he, ce*cor1412he)
 ```
 
+Sample current vs time
+
+```{r}
+plot_hgis_time(data, he12C)
+```
+
+#### Normalization
 
 ```{r}
 # Get mean ratio for solid OX-I and normalize data
