@@ -911,3 +911,59 @@ ds %>%
 ```
 
 It looks like the SD of replicates of modern samples with current > 3uA is around 0.5%, which is better than measurement statistics. Fm of NOSAMS 2 is a bit high. Need to investigate current-dependent blank.
+
+## 2021-03-01 Live gas and solid samples
+
+Ran live CO2 from vial to check performance after source cleaning and cryopump issues. Slow to get going, so only one modern gas standard and solid samples run. Tried second modern gas standard on pos 16, but no current from gas that worked on pos 15. Bad target?
+
+```{r}
+data <- get_hgis_data(here("data/USAMS020521R.txt"), as.Date("2021-03-01"))
+```
+
+### Currents and ratios vs time.
+
+Sample ratio vs. time
+
+```{r}
+plot_hgis_time(data, normFm, ce*normFm)
+```
+
+Sample current vs time
+
+```{r}
+plot_hgis_time(data, he12C)
+```
+
+### Normalization
+
+```{r}
+# Get mean ratio for solid OX-I and normalize data
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data <- data %>% 
+  mutate(normFm = norm_gas(cor1412he, stdrat))
+```
+
+### Summary of normalized data per sample
+
+```{r}
+ds <- data %>% 
+  filter(!outlier) %>% 
+  sum_hgis() %>% 
+  mutate(rec_num = case_when(str_starts(Sample.Name, "LiveGas") ~ 101730,
+                             Sample.Name == "C-1" ~ 83028,
+                             Sample.Name == "TIRI-F" ~ 2138,
+                             Sample.Name == "TIRI-I" ~ 17185,
+                             Sample.Name == "C-2" ~ 1082,
+                             Sample.Name == "NOSAMS2" ~ 38809))
+
+std <- getStdTable()
+
+ds <- left_join(ds, select(std, rec_num, fm_consensus)) %>% 
+  mutate(fm_consensus = ifelse(rec_num == 101730, 1.0398, fm_consensus))
+
+ds
+```
+
+```{r}
+plot_hgis(data)
+```
