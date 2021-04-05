@@ -1120,3 +1120,47 @@ data %>%
   geom_point()
 ```
 
+
+## 2021-04-03 High dillution test 
+
+Testing performance at higher dillution ratio. Started with pure live CO2 in vial and did long aquisition with high displacement helium flow to check current as CO2 concentration decreases. 
+
+LiveCO2 flow set to 244 uL/m.
+
+Using position 25 on USAMS040321. Shifted targets to higher positions to avoid wearing only low wheel positions. Initial current after 10min: 150nA. 
+
+Currents rose to a stable 10uA and stayed there for more than 90 min!
+
+### Data
+
+```{r}
+data <- get_hgis_data(here("data/USAMS040321R.txt")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2,4), "S", Pos))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data <- data %>% 
+  mutate(normFm = norm_gas(cor1412he, stdrat))
+```
+
+#### Currents and ratios vs time.
+
+Sample ratio vs. time
+
+```{r}
+plot_hgis_time(data, normFm, ce*normFm)
+```
+
+Sample current vs time
+
+```{r}
+plot_hgis_time(data, he12C)
+```
+
+### Ratio vs Current
+
+```{r}
+data %>% 
+  filter(Pos == 14) %>% 
+  ggplot(aes(he12C, normFm)) +
+  geom_smooth() +
+  geom_point()
+```
