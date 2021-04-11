@@ -1121,7 +1121,7 @@ data %>%
 ```
 
 
-## 2021-04-03 High dillution test 
+## 2021-04-02 High dillution test 
 
 Testing performance at higher dillution ratio. Started with pure live CO2 in vial and did long aquisition with high displacement helium flow to check current as CO2 concentration decreases. 
 
@@ -1134,8 +1134,8 @@ Currents rose to a stable 10uA and stayed there for more than 90 min!
 ### Data
 
 ```{r}
-data <- get_hgis_data(here("data/USAMS040321R.txt")) %>% 
-  mutate(Num = ifelse(Pos %in% c(2,4), "S", Pos))
+data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-02")) %>% 
+  mutate(Num = ifelse(Pos == 5, "S", Pos))
 stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
 data <- data %>% 
   mutate(normFm = norm_gas(cor1412he, stdrat))
@@ -1155,12 +1155,138 @@ Sample current vs time
 plot_hgis_time(data, he12C)
 ```
 
+TODO: Predict mass flow of CO2 with dillution model
+
 ### Ratio vs Current
 
 ```{r}
 data %>% 
-  filter(Pos == 14) %>% 
+  filter(Pos == 5) %>% 
   ggplot(aes(he12C, normFm)) +
   geom_smooth() +
   geom_point()
 ```
+
+### Expected CO2 ratio/flow
+
+Use dilution function to determine expected CO2 in flow to source at time t.
+
+
+## 2021-04-09 Carbonate samples
+
+Measured carbonate samples prepared on gasbench. Samples included TIRI-F, TIRI-I, and NOSAMS2. Normalized to gas standards or solid OX-I.
+
+All samples measured on fresh targets after a 5 minute "burn in" to reduce blank. 
+
+Using short capillaries from 2021-04-02. He flow set to 250ul/min.
+
+### Samples
+
+```{r}
+carb_data <- tribble(~vial, ~name, ~rec_num, ~mass,
+                     1, "NOSAMS2_1", 38809, 31.8,
+                     2, "NOSAMS2_1", 38809, 32.3,
+                     3, "NOSAMS2_1", 38809, 33.5,
+                     4, "TIRI-I_1", 17185, 33.1,
+                     5, "TIRI-I_1", 17185, 31.8,
+                     6, "TIRI-I_1", 17185, 31.8,
+                     7, "TIRI-F_1", 2138, 31.9,
+                     8, "TIRI-F_1", 2138, 33.4,
+                     9, "TIRI-F_1", 2138, 32.4
+                     )
+
+write_csv(carb_data, here("data/carb_data_2021-04-08.csv"))
+carb_data
+```
+
+### Data
+
+Normalizing to gas standards in pos 5 and 8. 
+
+```{r}
+data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09"))
+```
+
+#### Currents and ratios vs time.
+
+Sample ratio vs. time
+
+```{r}
+plot_hgis_time(data, normFm, ce*normFm)
+```
+
+Sample current vs time
+
+```{r}
+plot_hgis_time(data, he12C)
+```
+
+#### Summary of normalized data per sample
+
+```{r}
+std <- getStdTable()
+
+ds <- data %>% 
+  filter(!outlier) %>% 
+  sum_hgis() %>% 
+  mutate(rec_num = case_when(str_starts(Sample.Name, "LiveGas") ~ 101730,
+                             str_starts(Sample.Name, "C1") ~ 83028,
+                             str_starts(Sample.Name, "TIRI-F") ~ 2138,
+                             str_starts(Sample.Name, "TIRI-I") ~ 17185,
+                             str_starts(Sample.Name, "C2") ~ 1082,
+                             str_starts(Sample.Name, "NOSAMS2") ~ 38809,
+                             str_starts(Sample.Name, "DeadGas") ~ 72446)) %>% 
+ left_join(select(std, rec_num, fm_consensus), by = "rec_num") %>% 
+ mutate(fm_consensus = case_when(rec_num == 101730 ~ 1.0398,
+                                 rec_num == 72446 ~ 0.0013,
+                                 TRUE ~ fm_consensus))
+
+ds[-(1:4),-3]
+```
+
+
+```{r}
+data %>% 
+  filter(as.numeric(Pos) > 4) %>% 
+  ggplot(aes(pos_name, normFm)) +
+  geom_boxplot(fill = "slategray1") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) 
+```
+
+
+### Agreement of replicates
+
+Summary statistics to look at reproducibility, accuracy between targets/vials.
+
+Mean of modern CO2 filled on HGIS setup (LiveGas) and Gilson (LiveGasGil) were used for normalization but were fairly different on this run, so shown separately. 
+
+```{r}
+ds %>% 
+  filter(as.numeric(Pos) > 4) %>% 
+  mutate(Name = str_remove(Sample.Name, "_.$")) %>% 
+  group_by(Name, fm_consensus) %>% 
+  summarize(Fm.mean = mean(mean),
+            Fm.sd = sd(mean),
+            Cur.mean = mean(Cur),
+            N = n()) 
+```
+
+Agreement of replicates is better than 2% for all samples. Samples have higher Fm than consensus. I think most of this is due to blanks, but the low gas standard also would push unknown Fm's up.
+
+#### Blank correction
+
+Testing correcting for blank using a simple, mass-independent large blank correction. 
+
+Using dead gas blank, naive with no adjustment for graphite value of blank. This pushes Fm in the right direction, but comparing samples of the same type, there's a lot of variability that seems to be tied to sample current.
+
+```{r}
+fmblank <- ds$mean[ds$Sample.Name == "DeadGas"]
+fmblank
+ds <- ds %>% 
+  mutate(fm_lbc = doLBC(mean, fmblank, 1.0398))
+
+ds %>%
+  filter(as.numeric(Pos) > 4) %>% 
+select(Sample.Name, Cur, fm_consensus, mean, fm_lbc)
+```
+
