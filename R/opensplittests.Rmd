@@ -1204,7 +1204,14 @@ carb_data
 Normalizing to gas standards in pos 5 and 8. 
 
 ```{r}
-data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09"))
+# TODO: diagnose issue with Pos as factor not converting back to integer position.
+
+data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09")) %>% 
+  mutate(Num = ifelse(Pos %in% c(22, 24, 25, 27, 38), "U", Num))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data <- data %>% 
+  mutate(normFm = norm_gas(cor1412he, stdrat))
+data %>% count(Sample.Name, Pos)
 ```
 
 #### Currents and ratios vs time.
@@ -1280,7 +1287,11 @@ Testing correcting for blank using a simple, mass-independent large blank correc
 Using dead gas blank, naive with no adjustment for graphite value of blank. This pushes Fm in the right direction, but comparing samples of the same type, there's a lot of variability that seems to be tied to sample current.
 
 ```{r}
-fmblank <- ds$mean[ds$Sample.Name == "DeadGas"]
+fmblank <- ds %>%
+  filter(str_starts(Sample.Name, "DeadGas")) %>% 
+  pull(mean) %>% 
+  mean()
+
 fmblank
 ds <- ds %>% 
   mutate(fm_lbc = doLBC(mean, fmblank, 1.0398))
