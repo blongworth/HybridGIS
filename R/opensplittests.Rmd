@@ -1294,10 +1294,16 @@ fmblank <- ds %>%
 
 fmblank
 ds <- ds %>% 
-  mutate(fm_lbc = doLBC(mean, fmblank, 1.0398))
+  mutate(fm_lbc = doLBC(mean, fmblank, 1.0398),
+         diff = fm_lbc - fm_consensus)
 
 ds %>%
   filter(as.numeric(Pos) > 4) %>% 
-select(Sample.Name, Cur, fm_consensus, mean, fm_lbc)
+  select(Sample.Name, Cur, fm_consensus, mean, fm_lbc, diff)
+  
+```
+```{r}
+ggplot(ds, aes(fm_consensus, diff)) +
+  geom_point()
 ```
 
