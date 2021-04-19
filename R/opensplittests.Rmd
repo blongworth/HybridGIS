@@ -1078,7 +1078,16 @@ select(Sample.Name, Cur, fm_consensus, mean, fm_lbc)
 
 ## 2021-03-26 High dillution test 
 
-Startup and test after opening tank to refill terminal argon bottle. Testing helium dillution by starting with helium in vial and displacing with CO2. Used XXm of 75um capillary to provide 100ulm to source, but initial source pressure of 3E-7 Torr indicates lower flows. Shortened split-cage capillary to about 150cm, without a huge effect on pressure. Flow may be defined by cage-source capillary.
+Determine length of 75um capillary for ~100ulm to source.
+
+```{r}
+r <- 7.5E-5 / 2
+u <- 1.49E-5
+x <- 3
+flowcalc(100, r, u, x)
+```
+
+Startup and test after opening tank to refill terminal argon bottle. Testing helium dilution by starting with helium in vial and displacing with CO2. Used 2.5m of 75um capillary to provide 100ulm to source, but initial source pressure of 3E-7 Torr indicates lower flows. Shortened split-cage capillary to about 150cm, without a huge effect on pressure. Flow may be defined by cage-source capillary.
 
 LiveCO2 flow set to 244 uL/m.
 
@@ -1101,13 +1110,17 @@ data <- data %>%
 Sample ratio vs. time
 
 ```{r}
-plot_hgis_time(data, normFm, ce*normFm)
+data %>% 
+  filter(Pos == 14) %>% 
+  plot_hgis_time(normFm, ce*normFm)
 ```
 
 Sample current vs time
 
 ```{r}
-plot_hgis_time(data, he12C)
+data %>% 
+  filter(Pos == 14) %>% 
+  plot_hgis_time(he12C)
 ```
 
 ### Ratio vs Current
@@ -1116,20 +1129,17 @@ plot_hgis_time(data, he12C)
 data %>% 
   filter(Pos == 14) %>% 
   ggplot(aes(he12C, normFm)) +
-  geom_smooth() +
   geom_point()
 ```
 
 
 ## 2021-04-02 High dillution test 
 
-Testing performance at higher dillution ratio. Started with pure live CO2 in vial and did long aquisition with high displacement helium flow to check current as CO2 concentration decreases. 
+Testing performance at higher dilution ratio. Started with pure live CO2 in vial and did long acquisition with high displacement helium flow to check current as CO2 concentration decreases. 
 
 LiveCO2 flow set to 244 uL/m.
 
 Using position 25 on USAMS040321. Shifted targets to higher positions to avoid wearing only low wheel positions. Initial current after 10min: 150nA. 
-
-Currents rose to a stable 10uA and stayed there for more than 90 min!
 
 ### Data
 
@@ -1146,16 +1156,20 @@ data <- data %>%
 Sample ratio vs. time
 
 ```{r}
-plot_hgis_time(data, normFm, ce*normFm)
+data %>% 
+  filter(Pos == 5) %>% 
+  plot_hgis_time(normFm, ce*normFm)
 ```
 
 Sample current vs time
 
 ```{r}
-plot_hgis_time(data, he12C)
+data %>% 
+  filter(Pos == 5) %>% 
+  plot_hgis_time(he12C)
 ```
 
-TODO: Predict mass flow of CO2 with dillution model
+TODO: Predict mass flow of CO2 with dilution model
 
 ### Ratio vs Current
 
@@ -1163,20 +1177,19 @@ TODO: Predict mass flow of CO2 with dillution model
 data %>% 
   filter(Pos == 5) %>% 
   ggplot(aes(he12C, normFm)) +
-  geom_smooth() +
   geom_point()
 ```
 
 ### Expected CO2 ratio/flow
 
-Use dilution function to determine expected CO2 in flow to source at time t.
+TODO: Use dilution function to determine expected CO2 in flow to source at time t.
 
 
 ## 2021-04-09 Carbonate samples
 
 Measured carbonate samples prepared on gasbench. Samples included TIRI-F, TIRI-I, and NOSAMS2. Normalized to gas standards or solid OX-I.
 
-All samples measured on fresh targets after a 5 minute "burn in" to reduce blank. 
+All samples measured on fresh targets after a 10 minute "burn in" to reduce blanks.
 
 Using short capillaries from 2021-04-02. He flow set to 250ul/min.
 
@@ -1185,14 +1198,14 @@ Using short capillaries from 2021-04-02. He flow set to 250ul/min.
 ```{r}
 carb_data <- tribble(~vial, ~name, ~rec_num, ~mass,
                      1, "NOSAMS2_1", 38809, 31.8,
-                     2, "NOSAMS2_1", 38809, 32.3,
-                     3, "NOSAMS2_1", 38809, 33.5,
+                     2, "NOSAMS2_2", 38809, 32.3,
+                     3, "NOSAMS2_3", 38809, 33.5,
                      4, "TIRI-I_1", 17185, 33.1,
-                     5, "TIRI-I_1", 17185, 31.8,
-                     6, "TIRI-I_1", 17185, 31.8,
+                     5, "TIRI-I_2", 17185, 31.8,
+                     6, "TIRI-I_3", 17185, 31.8,
                      7, "TIRI-F_1", 2138, 31.9,
-                     8, "TIRI-F_1", 2138, 33.4,
-                     9, "TIRI-F_1", 2138, 32.4
+                     8, "TIRI-F_2", 2138, 33.4,
+                     9, "TIRI-F_3", 2138, 32.4
                      )
 
 write_csv(carb_data, here("data/carb_data_2021-04-08.csv"))
@@ -1201,31 +1214,29 @@ carb_data
 
 ### Data
 
-Normalizing to gas standards in pos 5 and 8. 
+Normalizing to gas standards in pos 26 and 37. 
 
 ```{r}
-# TODO: diagnose issue with Pos as factor not converting back to integer position.
-
 data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09")) %>% 
   mutate(Num = ifelse(Pos %in% c(22, 24, 25, 27, 38), "U", Num))
 stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
 data <- data %>% 
   mutate(normFm = norm_gas(cor1412he, stdrat))
-data %>% count(Sample.Name, Pos)
 ```
 
 #### Currents and ratios vs time.
 
-Sample ratio vs. time
+
 
 ```{r}
-plot_hgis_time(data, normFm, ce*normFm)
+plot_hgis_time(data, normFm, ce*normFm) +
+  ggtitle("Sample ratio vs. time")
 ```
 
-Sample current vs time
 
 ```{r}
-plot_hgis_time(data, he12C)
+plot_hgis_time(data, he12C) +
+  ggtitle("Sample current vs. time")
 ```
 
 #### Summary of normalized data per sample
@@ -1254,7 +1265,7 @@ ds[-(1:4),-3]
 
 ```{r}
 data %>% 
-  filter(as.numeric(Pos) > 4) %>% 
+  filter(as.numeric(Pos) > 5) %>% 
   ggplot(aes(pos_name, normFm)) +
   geom_boxplot(fill = "slategray1") +
   theme(axis.text.x = element_text(angle = 45, hjust=1)) 
@@ -1265,11 +1276,10 @@ data %>%
 
 Summary statistics to look at reproducibility, accuracy between targets/vials.
 
-Mean of modern CO2 filled on HGIS setup (LiveGas) and Gilson (LiveGasGil) were used for normalization but were fairly different on this run, so shown separately. 
 
 ```{r}
 ds %>% 
-  filter(as.numeric(Pos) > 4) %>% 
+  filter(as.numeric(Pos) > 5) %>% 
   mutate(Name = str_remove(Sample.Name, "_.$")) %>% 
   group_by(Name, fm_consensus) %>% 
   summarize(Fm.mean = mean(mean),
@@ -1282,20 +1292,22 @@ Agreement of replicates is better than 2% for all samples. Samples have higher F
 
 #### Blank correction
 
-Testing correcting for blank using a simple, mass-independent large blank correction. 
+Testing correcting for blank using a mass-independent large blank correction. 
 
-Using dead gas blank, naive with no adjustment for graphite value of blank. This pushes Fm in the right direction, but comparing samples of the same type, there's a lot of variability that seems to be tied to sample current.
+Using TIRI-F as blank, naive with no adjustment for graphite value of blank. This pushes Fm in the right direction, but comparing samples of the same type, there's a lot of variability that seems to be tied to sample current.
 
 ```{r}
 fmblank <- ds %>%
-  filter(str_starts(Sample.Name, "DeadGas")) %>% 
+  filter(str_starts(Sample.Name, "TIRI-F")) %>% 
   pull(mean) %>% 
   mean()
 
 fmblank
 ds <- ds %>% 
   mutate(fm_lbc = doLBC(mean, fmblank, 1.0398),
-         diff = fm_lbc - fm_consensus)
+         diff = fm_lbc - fm_consensus,
+         normFm = normFm(fm_lbc, fm_consensus),
+         sigma = sigma(fm_lbc, fm_consensus, merr))
 
 ds %>%
   filter(as.numeric(Pos) > 4) %>% 
@@ -1304,12 +1316,20 @@ ds %>%
 ```
 ```{r}
 ggplot(ds, aes(fm_consensus, diff)) +
-  geom_point()
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = diff - merr, ymax = diff + merr)) +
+  geom_point() +
+  ggtitle("Difference in LBC-corrected vs consensus")
 ```
 
-It looks like the normalization may be off a bit. Note positive linear correlation of Fm consensus difference with Fm of sample. Check how diff is done to confirm +- slope.
+```{r}
+ggplot(ds, aes(fm_consensus, sigma)) +
+  geom_hline(yintercept = 0) +
+  geom_point() +
+  ggtitle("Sigma of LBC-corrected vs consensus")
+```
 
-
+It looks like the normalization may be off a bit. Note positive linear correlation of Fm consensus difference with Fm of sample. Gas standards run at end of day were higher than those from the beginning. NOSAMS-2 was run early in the day, so closer to standards with lower ratios.
 
 
 ## 2021-04-16 Carbonate samples
@@ -1318,54 +1338,50 @@ Measured carbonate samples prepared on gasbench. Samples included C-1, C-2, and 
 
 All samples measured on fresh targets after a 10 minute "burn in" to reduce blank. 
 
-Using short capillaries from 2021-04-02. He flow set to 250ul/min.  Had to shorten delivery capilary at start of first C-2 due to acid clog. Needle blown out with compressed air.
+Using short capillaries from 2021-04-02. He flow set to 250ul/min.  Had to shorten delivery capillary by ~10cm at start of first C-2 due to acid clog. Needle blown out with compressed air.
 
 ### Samples
 
 ```{r}
 carb_data <- tribble(~vial, ~name, ~rec_num, ~mass,
-                     1, "NOSAMS2_1", 38809, 31.8,
-                     2, "NOSAMS2_1", 38809, 32.3,
-                     3, "NOSAMS2_1", 38809, 33.5,
-                     4, "TIRI-I_1", 17185, 33.1,
-                     5, "TIRI-I_1", 17185, 31.8,
-                     6, "TIRI-I_1", 17185, 31.8,
-                     7, "TIRI-F_1", 2138, 31.9,
-                     8, "TIRI-F_1", 2138, 33.4,
-                     9, "TIRI-F_1", 2138, 32.4
+                     1, "C-1_1", 83028, 30.05,
+                     2, "C-1_2", 83028, 36.00,
+                     2, "C-1_3", 83028, 31.88,
+                     4, "C-2_1", 1082, 32.57,
+                     5, "C-2_2", 1082, 35.50,
+                     6, "C-2_3", 1082, 34.10,
+                     7, "NOSAMS-2_1", 38809, 35.20,
+                     8, "NOSAMS-2_2", 38809, 32.19,
+                     9, "NOSAMS-2_3", 38809, 33.20
                      )
 
-write_csv(carb_data, here("data/carb_data_2021-04-08.csv"))
+write_csv(carb_data, here("data/carb_data_2021-04-15.csv"))
 carb_data
 ```
 
 ### Data
 
-Normalizing to gas standards in pos 5 and 8. 
+Normalizing to gas standards in pos 25, 26, 36 and 37. 
 
 ```{r}
-# TODO: diagnose issue with Pos as factor not converting back to integer position.
-
-data <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16")) %>% 
-  mutate(Num = ifelse(Pos %in% c(22, 24, 25, 27, 38), "U", Num))
-stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
-data <- data %>% 
-  mutate(normFm = norm_gas(cor1412he, stdrat))
-data %>% count(Sample.Name, Pos)
+data <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16")) 
 ```
 
 #### Currents and ratios vs time.
 
-Sample ratio vs. time
-
 ```{r}
-plot_hgis_time(data, normFm, ce*normFm)
+data %>% 
+  filter(!(Pos %in% 21:24)) %>% 
+  plot_hgis_time(normFm, ce*normFm) +
+  ggtitle("Sample ratio vs. time")
 ```
 
-Sample current vs time
 
 ```{r}
-plot_hgis_time(data, he12C)
+data %>% 
+  filter(!(Pos %in% 21:24)) %>% 
+  plot_hgis_time(he12C)
+  ggtitle("Sample current vs time")
 ```
 
 #### Summary of normalized data per sample
@@ -1405,8 +1421,6 @@ data %>%
 
 Summary statistics to look at reproducibility, accuracy between targets/vials.
 
-Mean of modern CO2 filled on HGIS setup (LiveGas) and Gilson (LiveGasGil) were used for normalization but were fairly different on this run, so shown separately. 
-
 ```{r}
 ds %>% 
   filter(as.numeric(Pos) > 4) %>% 
@@ -1418,31 +1432,44 @@ ds %>%
             N = n()) 
 ```
 
-Agreement of replicates is better than 2% for all samples. Samples have higher Fm than consensus. I think most of this is due to blanks, but the low gas standard also would push unknown Fm's up.
-
 #### Blank correction
 
-Testing correcting for blank using a simple, mass-independent large blank correction. 
+Testing correcting for blank using mass-independent large blank correction. 
 
-Using dead gas blank, naive with no adjustment for graphite value of blank. This pushes Fm in the right direction, but comparing samples of the same type, there's a lot of variability that seems to be tied to sample current.
+Using C-1 with no adjustment for graphite value of blank. 
 
 ```{r}
 fmblank <- ds %>%
-  filter(str_starts(Sample.Name, "DeadGas")) %>% 
+  filter(str_starts(Sample.Name, "C-1")) %>% 
   pull(mean) %>% 
   mean()
 
 fmblank
 ds <- ds %>% 
   mutate(fm_lbc = doLBC(mean, fmblank, 1.0398),
-         diff = fm_lbc - fm_consensus)
+         diff = fm_lbc - fm_consensus,
+         normFm = normFm(fm_lbc, fm_consensus),
+         sigma = sigma(fm_lbc, fm_consensus, merr))
 
 ds %>%
   filter(as.numeric(Pos) > 4) %>% 
   select(Sample.Name, Cur, fm_consensus, mean, fm_lbc, diff)
-  
 ```
+
 ```{r}
 ggplot(ds, aes(fm_consensus, diff)) +
-  geom_point()
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = diff - merr, ymax = diff + merr)) +
+  geom_point() +
+  ggtitle("Difference in LBC-corrected vs consensus")
 ```
+
+```{r}
+ggplot(ds, aes(fm_consensus, sigma)) +
+  geom_hline(yintercept = 0) +
+  geom_point() +
+  ggtitle("Sigma of LBC-corrected vs consensus")
+```
+
+There may be some issues with normalization. The initial two standards on both of the last carbonate runs were lower than the two at the end of the run. On 4/9, first two standards were Fm 1.03 and 0.99, last two were 1.05 and 1.07. On 4/16, first two were 1.02 and 1.04, last two were both 1.05. NOSAMS2 were run first on 4/9 and were high after blank correction. On 4/16 they were run last and were low. 
+
