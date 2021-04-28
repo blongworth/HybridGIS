@@ -906,6 +906,27 @@ ds %>%
 
 It looks like the SD of replicates of modern samples with current > 3uA is around 0.5%, which is better than measurement statistics. Fm of NOSAMS 2 is a bit high. Need to investigate current-dependent blank.
 
+#### Blank correction
+
+Testing correcting for blank using a simple, mass-independent large blank correction. 
+
+LBC does not work well for this set of samples.
+
+
+```{r}
+fmblank <- ds$mean[ds$Sample.Name == "TIRI-F"]
+fmblank
+ds <- ds %>% 
+  mutate(fm_lbc = doLBC(mean, fmblank, 1.0398))
+
+ds %>%
+  filter(as.numeric(Pos) > 4) %>% 
+select(Sample.Name, Cur, fm_consensus, mean, fm_lbc)
+
+ds %>% 
+write_csv(here("data_analysed/USAMS020521.csv"))
+```
+
 ## 2021-03-01 Live gas and solid samples
 
 Ran live CO2 from vial to check performance after source cleaning and cryopump issues. Slow to get going, so only one modern gas standard and solid samples run. Tried second modern gas standard on pos 16, but no current from gas that worked on pos 15. Bad target?
@@ -1073,6 +1094,9 @@ ds <- ds %>%
 ds %>%
   filter(as.numeric(Pos) > 4) %>% 
 select(Sample.Name, Cur, fm_consensus, mean, fm_lbc)
+
+ds %>% 
+write_csv(here("data_analysed/USAMS030421.csv"))
 ```
 
 
@@ -1340,7 +1364,10 @@ ds %>%
   filter(as.numeric(Pos) > 4) %>% 
   select(Sample.Name, Cur, fm_consensus, mean, fm_lbc, diff)
   
+ds %>% 
+write_csv(here("data_analysed/USAMS040121.csv"))
 ```
+
 ```{r}
 ggplot(ds, aes(fm_consensus, diff)) +
   geom_hline(yintercept = 0) +
@@ -1480,7 +1507,10 @@ ds <- ds %>%
 
 ds %>%
   filter(as.numeric(Pos) > 4) %>% 
-  select(Sample.Name, Cur, fm_consensus, mean, fm_lbc, diff)
+  select(Sample.Name, Cur, fm_consensus, mean, merr, fm_lbc, diff)
+
+ds %>% 
+write_csv(here("data_analysed/USAMS041521.csv"))
 ```
 
 ```{r}
@@ -1500,3 +1530,26 @@ ggplot(ds, aes(fm_consensus, sigma)) +
 
 There may be some issues with normalization. The initial two standards on both of the last carbonate runs were lower than the two at the end of the run. On 4/9, first two standards were Fm 1.03 and 0.99, last two were 1.05 and 1.07. On 4/16, first two were 1.02 and 1.04, last two were both 1.05. NOSAMS2 were run first on 4/9 and were high after blank correction. On 4/16 they were run last and were low. 
 
+### Combining data
+
+A weak attempt at combining data. The solution is an analysis script to normalize, average runs, and blank correct by wheel.
+
+```{r}
+data <- get_hgis_data(here("data/USAMS020521R.txt")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "U", Num))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data205 <- data %>% 
+  mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data304 <- get_hgis_data(here("data/USAMS030421R.txt"), as.Date("2021-03-05"))
+
+data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09")) %>% 
+  mutate(Num = ifelse(Pos %in% c(22, 24, 25, 27, 38), "U", Num))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data409 <- data %>% 
+  mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data415 <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16")) 
+
+data <- rbind(data205, data304, data409, data415)
+```
