@@ -281,7 +281,7 @@ Procedure:
 
 1. Admit sample to inlet, measure pressure.
 2. Freeze sample to CF.
-3. Admit He to inlet to give desired dillution
+3. Admit He to inlet to give desired dilution
 4. Close SF
 5. Warm sample
 6. Adjust bellows for best current
