@@ -17,8 +17,12 @@ output:
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Libraries
 library(tidyverse)
 library(xaringanthemer)
+library(here)
 
 # Colors
 dark_blue <- "#041e42"
@@ -156,7 +160,7 @@ names(mtcars)
 ]
 
 .pull-right[
-```{r, echo=FALSE}
+```{r}
 ggplot(mtcars, aes(disp, mpg)) + geom_point() + theme_xaringan()
 ```
 ]
@@ -274,6 +278,16 @@ precision, accuracy
 plot: secondary standard performance
 
 issues with blank and normalization
+
+```{r}
+df <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv)
+ggplot(df, aes(fm_consensus, diff)) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = diff - merr, ymax = diff + merr)) +
+  geom_point() +
+  ggtitle("Difference in LBC-corrected vs consensus") +
+  theme_xaringan()
+```
 
 ---
 
