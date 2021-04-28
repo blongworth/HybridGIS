@@ -9,6 +9,7 @@ output:
     css: xaringan-themer.css
     lib_dir: libs
     nature:
+      ratio: "16:9"
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
@@ -18,13 +19,46 @@ output:
 options(htmltools.dir.version = FALSE)
 library(tidyverse)
 library(xaringanthemer)
-style_mono_light(base_color = "#23395b")
+
+# Colors
+dark_blue <- "#041e42"
+light_blue <- "#00a9e0"
+medium_blue <- "0069b1"
+aqua_blue <- "#00b7bd"
+cool_gray_11 <- "#53565a"
+cool_gray_4 <- "#bbbcbc"
+background <- "#e6e7e8"
+
+style_mono_light(
+  # colors
+  base_color = dark_blue,
+  # primary_color = background,
+  # secondary_color = dark_blue,
+  
+  # fonts
+  header_font_google = google_font("Montserrat", "800"),
+  text_font_google = google_font("Red Hat Display", "500")
+)
+style_extra_css(
+  css = list(
+    ".title-slide" = list(
+      "background-image" = "url(images/whoi_seal_title_bkgnd.jpg)",
+      "background-size" = "cover"
+    )
+  ),
+  append = TRUE,
+  heading = "Extra CSS"
+)
 ```
 
 # Why run gas instead of graphite?
 
+Benefits
+
 - Skip a time-consuming reduction to graphite
 - Eliminate blank associated with graphitization
+
+Challenges
 
 - Ultimate precision is lower
 - Lower currents/counts
@@ -38,11 +72,12 @@ style_mono_light(base_color = "#23395b")
 introduction onto Ti surface in target recess
 Predicted chemistry/physics of decomposition and ionization
 
-* Inject CO<super>2</super> gas onto Ti target
-* Sputter with Cs<super>+</super>
+$$CO2+e^- \longrightarrow C^-+2O^-$$
+* Inject CO<sup>2</sup> gas onto Ti target
+* Sputter with Cs<sup>+</sup>
 * Dissociate molecules (hopefully)
-* Produce C - ions (and O - , CH - , OH - , CO - ....)
-* Extract C - beam
+* Produce C<sup>-</sup> ions (and O<sup>-</sup>, CH<sup>-</sup>, OH<sup>-</sup>, CO<sup>-</sup>...)
+* Extract C<sup>-</sup> beam
 
 figure: Salazar target model
 
@@ -64,24 +99,28 @@ State of the art:
 
 # The NEC HGIS
 
-NEC arm drawing
-Target and source images
-Figure/photo of NEC bellows system
+figure: NEC arm drawing
+photo: source 
 
 * Modified to allow easy switch between solid and hybrid operation
 * Rest is gas handling
+
+Figure/photo of NEC bellows system
 
 ---
 
 # Targets
 
-target cutaway with callouts
-
+.pull-left[
 Potential for:
 
 * Lower cost
 * Better performance
+]
 
+.pull-right[
+photo: target cutaway with callouts
+]
 ---
 
 
@@ -105,6 +144,7 @@ Results
 
 # First tests - results
 
+.pull-left[
 current vs flow
 ratio vs flow
 efficiency
@@ -112,8 +152,14 @@ precision
 
 ```{r}
 names(mtcars)
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
 ggplot(mtcars, aes(disp, mpg)) + geom_point() + theme_xaringan()
 ```
+]
 
 ---
 
@@ -144,31 +190,43 @@ Smallest samples require minimizing inlet volume and pressure while maintaining 
 
 # Inlet systems - closed inlet
 
+.pull-left[
 IRMS dual bellows
-
-Diagram
-Photo
 
 * VG Prism dual bellows
 * LabVIEW interface
 * 2 x bellows
 * Cryotraps
 * Manifold capable
+]
+
+.pull-right[
+figure: irms inlet
+photo: irms inlet
+]
 
 ---
 
 # Closed inlet results
 
-Results from breakseals figure
+plot: Results from breakseals
 
 ---
 
-# Open split 
+# Open split development
 
 development
+
+photo: gas panel
+
+---
+
+# Current open split
+
 current layout
-photo
-diagram
+
+photo: open split
+figure: open split
 
 ---
 
@@ -178,11 +236,13 @@ Produce sample
 target cleaning
 introduce sample using helium
 
+photo: gilson
+
 ---
 
 # Results - current profiles
 
-figure: long runs from vial
+plot: long runs from vial
 
 ---
 
@@ -190,7 +250,8 @@ figure: long runs from vial
 
 Current/target dependent?
 Constant blanks and currents allow single mass independent correction
-figure: current dependent blanks with intersect
+
+plot: current dependent blanks with intersect
 
 ---
 
@@ -199,14 +260,18 @@ figure: current dependent blanks with intersect
 precision
 reproducibility
 
-figure: gas standards
+plot: gas standards
+
+reproducibility of straight gas vs vial standards
+
 
 ---
 
 # Results - secondaries
 
 precision, accuracy
-figure: secondary standard performance
+
+plot: secondary standard performance
 
 issues with blank and normalization
 
@@ -216,7 +281,8 @@ issues with blank and normalization
 
 high dillution, high flow
 pressure control to maintain constant CO2 to source
-figure: dillution modelling plot
+
+plot: dillution modelling plot
 figure: setup with pressure control
 
 ---
