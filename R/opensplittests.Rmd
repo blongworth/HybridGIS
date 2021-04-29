@@ -17,6 +17,7 @@ library(amstools)
 library(here)
 library(HybridGIS)
 library(broom)
+library(patchwork)
 
 theme_set(theme_bw())
 options(digits = 3)
@@ -1556,26 +1557,150 @@ ggplot(ds, aes(fm_consensus, sigma)) +
 
 There may be some issues with normalization. The initial two standards on both of the last carbonate runs were lower than the two at the end of the run. On 4/9, first two standards were Fm 1.03 and 0.99, last two were 1.05 and 1.07. On 4/16, first two were 1.02 and 1.04, last two were both 1.05. NOSAMS2 were run first on 4/9 and were high after blank correction. On 4/16 they were run last and were low. 
 
-### Combining data
+# Combining data
 
-A weak attempt at combining data. The solution is an analysis script to normalize, average runs, and blank correct by wheel.
+A weak attempt at combining data. The solution is an analysis script to normalize, average runs, and blank correct by wheel. 
+
+ADD MOAR DATA
 
 ```{r}
-data <- get_hgis_data(here("data/USAMS020521R.txt")) %>% 
-  mutate(Num = ifelse(Pos %in% c(2, 4), "U", Num))
+data<- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-17")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
 stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
-data205 <- data %>% 
-  mutate(normFm = norm_gas(cor1412he, stdrat))
+data1013 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
 
-data304 <- get_hgis_data(here("data/USAMS030421R.txt"), as.Date("2021-03-05"))
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-04")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data1204 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data1211 <- get_hgis_data(here("data/USAMS120320R.txt")) %>% 
+  filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11")
+
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-18")) %>% 
+  filter(Pos != 0) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data1218 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data0108 <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-08"))
+
+# no solid standards
+# df <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-15")) 
+# stdrat <- mean(df$cor1412he[df$pos_name == "8 - LiveGasOS" & !df$outlier])
+# data0115 <- mutate(df, normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS020521R.txt")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data205 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS030421R.txt"), as.Date("2021-03-05")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data304 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
 
 data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09")) %>% 
-  mutate(Num = ifelse(Pos %in% c(22, 24, 25, 27, 38), "U", Num))
+  mutate(Num = ifelse(Pos %in% c(22, 24), "S", ifelse(Num == "S", "U", Num)))
 stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
-data409 <- data %>% 
-  mutate(normFm = norm_gas(cor1412he, stdrat))
+data409 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
 
-data415 <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16")) 
+data <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16"))  %>% 
+  mutate(Num = ifelse(Pos %in% c(22, 24), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data415 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
 
-data <- rbind(data205, data304, data409, data415)
+data <- rbind(data1013, data1204, data1211, data1218, data205, data304, data409, data415)
+```
+
+## Current dependent blank with combined data
+```{r}
+unique(data$Sample.Name)
+```
+
+Modern
+
+```{r}
+data %>% 
+  filter(str_detect(Sample.Name, "LiveGas")) %>% 
+  ggplot(aes(he12C, normFm)) + 
+  geom_smooth(method = "lm") +
+  geom_point()
+```
+
+Dead
+
+```{r}
+data %>% 
+  filter(str_detect(Sample.Name, "DeadGas|Blank")) %>% 
+  ggplot(aes(1/he12C, normFm)) + 
+  geom_point()
+```
+
+Summarize by sample
+
+```{r}
+ds <- sum_hgis(data) %>% 
+  filter((str_detect(Sample.Name, "LiveGas") & Cur > 1) | str_detect(Sample.Name, "DeadGas|Blank")) %>% 
+  mutate(Gas = ifelse(str_detect(Sample.Name, "LiveGas"), "LiveGas", "DeadGas"),
+         Cur_inv = 1/Cur)
+```
+
+Modern
+
+```{r}
+live <- ds %>% 
+  filter(str_detect(Sample.Name, "LiveGas") & Cur > 1) %>% 
+  ggplot(aes(Cur, mean)) + 
+  # geom_smooth(method = "lm") +
+  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr)) +
+  geom_point()
+```
+
+Dead
+
+```{r}
+dead <- ds %>% 
+  filter(str_detect(Sample.Name, "DeadGas")) %>% 
+  ggplot(aes(Cur, mean)) + 
+  #geom_smooth(method = "lm") +
+  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr)) +
+  geom_point()
+```
+
+```{r}
+live / dead
+```
+
+### Modelling current dependent blank
+
+#### Fit linear models
+
+```{r}
+fits <- ds %>% 
+  ungroup() %>% 
+  nest(data = -Gas) %>% 
+  mutate(fit = map(data, ~lm(mean ~ Cur_inv, data = .x)),
+         tidied = map(fit, tidy)) %>% 
+  unnest(tidied) 
+
+fits %>% 
+  select(Gas, term, estimate) %>% 
+  pivot_wider(names_from = c(Gas, term), values_from = estimate) %>% 
+  mutate(inv_m_blank = -(`DeadGas_(Intercept)` - `LiveGas_(Intercept)`)/(DeadGas_Cur_inv - LiveGas_Cur_inv),
+         Fm_blank = `DeadGas_(Intercept)` + DeadGas_Cur_inv * inv_m_blank,
+         m_blank = 1/inv_m_blank) %>% 
+  select(Fm_blank, m_blank)
+```
+
+#### Fm vs. inverse mass with fits.
+
+```{r}
+ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
+  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr)) + 
+  geom_smooth(method = "lm", fullrange = TRUE, se = FALSE) +
+  xlim(0, 10) +
+  #ylim(0, 1.2)
+  ggtitle("Fm of live and dead CO2 vs. inverse 12C current",
+          subtitle = "Fit lines should cross at Fm and current of blank")
 ```
