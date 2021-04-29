@@ -26,6 +26,8 @@ library(here)
 library(HybridGIS)
 library(patchwork)
 library(amstools)
+library(gt)
+library(knitr)
 
 # Colors
 dark_blue <- "#041e42"
@@ -60,8 +62,8 @@ style_extra_css(
 
 # Why run gas instead of graphite?
 
-Performance = currents counts stability efficiency time
 
+.pull-left[
 ### Benefits
 
 - Skip a time-consuming reduction to graphite
@@ -73,16 +75,29 @@ Performance = currents counts stability efficiency time
 - Lower currents/counts (time to precision)
 - variability in blank (current dependent)
 - variability in sample performance
+]
 
-Method comparison table
+.pull-right[
+```{r}
+methods <- tribble(~" ", ~"Graphite", ~"CFAMS ECR GIS", ~"Hybrid GIS",
+                   "Continous flow", "No", "Yes", "No",
+                   "Measurement time", "30 min", "5 min", "15-30 min",
+                   "Precision", "0.3%", "1%", "1%",
+                   "Background", "0.1 pmc", "1 pmc", "1 pmc")
+methods %>% 
+  kable(format = "html")
+
+```
+]
+
+???
+
+Performance = currents counts stability efficiency time
 
 ---
 
 # How do you sputter a gas?
 
-introduction onto Ti surface in target recess
-
-Predicted chemistry/physics of decomposition and ionization
 
 ### $$CO_2+e^- \longrightarrow C^-+2O^-$$
 
@@ -98,6 +113,12 @@ Predicted chemistry/physics of decomposition and ionization
 ![Salazar, 2013](images/salazar_hgis_target_flow.png)
 .right[Salazar, 2013]
 ]
+
+???
+
+introduction onto Ti surface in target recess
+
+Predicted chemistry/physics of decomposition and ionization
 
 ---
 
@@ -122,11 +143,16 @@ State of the art:
 * Modified to allow easy switch between solid and hybrid operation
 * Rest is gas handling
 
-![NEC gas arm](images/HGIS_arm_drawing.png)
+```{r, echo=FALSE, fig.align='center', out.height='550px'}
+
+# looks squished
+knitr::include_graphics("images/hgis_arm_source.jpeg")
+```
+![source photo](images/hgis_arm_source.jpeg)
 ]
 
 .pull-right[
-![source photo](images/hgis_arm_source.jpeg)
+![NEC gas arm](images/HGIS_arm_drawing.svg)
 ]
 
 ???
@@ -255,8 +281,9 @@ current layout
 ]
 
 .pull-right[
-
-![open split photo](images/gas_control.jpg)
+```{r, echo=FALSE, fig.align='center', out.height='550px'}
+knitr::include_graphics("images/gas_control.jpg")
+```
 ]
 ---
 
@@ -352,19 +379,23 @@ Lead into blank on next slide
 
 # Results - blanks
 
+## Current dependent blank
+
+* Plot: ratio vs current for blanks and livegas
+* plot: current dependent blanks with intersect
+
+## Current independent correction
+
 Current/target dependent?
 Constant blanks and currents allow single mass independent correction
 
-Plot: ratio vs current for blanks and livegas
-plot: current dependent blanks with intersect
+* plot: normalized Fm of blanks (dead gas, carbonates) over time 
 
 ???
 
 Idea: use data from dillution runs of live and dead gas to create curves
 
----
-
-plot: normalized Fm of blanks (dead gas, carbonates) over time 
+It's relatively easy to produce runs with terrible current, but usually not good for blank as caused by other issues.
 
 ---
 
