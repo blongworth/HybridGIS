@@ -1226,6 +1226,32 @@ data.frame(x = 0:8000) %>%
        y = "CO2 (mL)")
 ```
 
+```{r}
+data.frame(x = 0:8000) %>% 
+  ggplot(aes(x)) +
+  stat_function(fun=function(x) concCO2(x, r = heflow) * 30, aes(color = "CO2")) +
+  scale_color_manual("Gas", values = c("green", "blue")) +
+  labs(title = "CO2 flow over time",
+       subtitle = "7mL vial, 244uL/min helium",
+       x = "Time (s)",
+       y = "CO2 (uL/s)")
+```
+
+Add flow at time to data and plot current vs flow. 30 ul/m is estimate of capillary flow based on past results.
+
+```{r}
+data <- data %>% 
+  mutate(co2flow = concCO2(cum_acqtime, r = heflow) * 30) #30ul/min
+
+ggplot(data, aes(co2flow, he12C)) +
+  geom_smooth(span = .3, se=FALSE) +
+  geom_point() +
+  labs(title = "Vial dillution current",
+       subtitle = "250uL/min displacement, 30ul/min delivery",
+       x = "CO2 flow (ul/m)",
+       y = "12C current (uA)")
+```
+
 ### Ratio vs Current
 
 ```{r}
