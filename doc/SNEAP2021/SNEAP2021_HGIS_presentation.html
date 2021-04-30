@@ -131,7 +131,8 @@ State of the art:
 * Modified to allow easy switch between solid and hybrid operation
 * Rest is gas handling
 
-&lt;img src="images/hgis_arm_source.jpeg" height="350px" style="display: block; margin: auto;" /&gt;
+&lt;img src="images/hgis_arm_source.jpeg" height="550px" style="display: block; margin: auto;" /&gt;
+![source photo](images/hgis_arm_source.jpeg)
 ]
 
 .pull-right[
@@ -160,9 +161,9 @@ NEC Hybrid target cutaway
 
 ---
 
-.pull-left[
 # First tests
 
+.pull-left[
 ### Conditions
 * Modern and dead CO&lt;sub&gt;2&lt;/sub&gt;
 * 8m x 50 μm capillary
@@ -176,11 +177,9 @@ NEC Hybrid target cutaway
 ]
 
 .pull-right[
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-3-1.svg)&lt;!-- --&gt;
+]
 
-.middle[
-![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
-]
-]
 ---
 
 # Inlet systems
@@ -246,9 +245,11 @@ photo: gas panel
 ---
 
 .pull-left[
-# Current open split
+# Open split
 
-current layout
+Use helium to displace CO2 from vials into split.
+
+Capillary to source controls gas flow
 
 ![open split diagram](images/HGIS_open_split_drawing.svg)
 ]
@@ -261,28 +262,42 @@ current layout
 .pull-left[
 # Carbonate method
 
-Produce sample
-target cleaning
-introduce sample using helium
+Sample preparation
 
-table: comparison of carbonate methods
+* Add acid to carbonate
+* Fill vial with CO2 at 1 ATM
+
+Measurement
+
+Pre-sputter target
+Displace sample 
+Measurement
+
 ]
 
 .pull-right[
+
+figure: DAG graph of process
 .center.middle[![gilson autosampler](images/gilson.png)]
 ]
 
+???
+
+table: comparison of carbonate methods
 
 ---
+
 .pull-left[
 # Currents and flows
 
-Balancing analysis time and flow rates to maximize stable currents and minimize sample size]
+Balancing analysis time and flow rates to maximize stable currents and minimize sample size
+]
 
 
 .pull-right[
-![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-5-1.svg)&lt;!-- --&gt;
 ]
+
 ---
 
 # Currents and flows
@@ -295,7 +310,7 @@ Balancing analysis time and flow rates to maximize stable currents and minimize 
 ]
 
 .pull-right[
-&lt;img src="SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-6-1.png" width="504" /&gt;
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-6-1.svg)&lt;!-- --&gt;
 ]
 
 ???
@@ -323,6 +338,7 @@ Current/target dependent?
 Constant blanks and currents allow single mass independent correction
 
 * plot: normalized Fm of blanks (dead gas, carbonates) over time 
+* plot: blanks by day, average daily current and target blank current
 
 ???
 
@@ -344,15 +360,28 @@ reproducibility of straight gas vs vial standards
 
 ---
 
-# Results - secondaries
+.left-column[
+# Secondary standards
+
+* Currents &gt; 2uA
+* Note current dependence
+
+Data summary
+mean difference
+sd of diff
+
+]
+
+.right-column[
+.right[
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-7-1.svg)&lt;!-- --&gt;
+]
+]
+
+???
 
 precision, accuracy
-
-plot: secondary standard performance
-
 issues with blank and normalization
-
-![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
 
 ---
 

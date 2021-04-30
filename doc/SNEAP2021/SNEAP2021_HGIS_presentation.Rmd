@@ -177,9 +177,9 @@ NEC Hybrid target cutaway
 
 ---
 
-.pull-left[
 # First tests
 
+.pull-left[
 ### Conditions
 * Modern and dead CO<sub>2</sub>
 * 8m x 50 μm capillary
@@ -193,9 +193,7 @@ NEC Hybrid target cutaway
 ]
 
 .pull-right[
-
-.middle[
-```{r}
+```{r, fig.height=6, dev='svg'}
 read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
   mutate(flow = flowcalc(supply/10, 2E-5, 1.49E-5, 1.58)) %>% 
   ggplot(aes(flow, current)) +
@@ -207,7 +205,7 @@ read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
   theme_xaringan()
 ```
 ]
-]
+
 ---
 
 # Inlet systems
@@ -273,9 +271,11 @@ photo: gas panel
 ---
 
 .pull-left[
-# Current open split
+# Open split
 
-current layout
+Use helium to displace CO2 from vials into split.
+
+Capillary to source controls gas flow
 
 ![open split diagram](images/HGIS_open_split_drawing.svg)
 ]
@@ -290,27 +290,40 @@ knitr::include_graphics("images/gas_control.jpg")
 .pull-left[
 # Carbonate method
 
-Produce sample
-target cleaning
-introduce sample using helium
+Sample preparation
 
-table: comparison of carbonate methods
+* Add acid to carbonate
+* Fill vial with CO2 at 1 ATM
+
+Measurement
+
+Pre-sputter target
+Displace sample 
+Measurement
+
 ]
 
 .pull-right[
+
+figure: DAG graph of process
 .center.middle[![gilson autosampler](images/gilson.png)]
 ]
 
+???
+
+table: comparison of carbonate methods
 
 ---
+
 .pull-left[
 # Currents and flows
 
-Balancing analysis time and flow rates to maximize stable currents and minimize sample size]
+Balancing analysis time and flow rates to maximize stable currents and minimize sample size
+]
 
 
 .pull-right[
-```{r}
+```{r, fig.height=8, dev='svg'}
 data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-02")) %>% 
   filter(Pos == 5) %>% 
   mutate(time = cum_acqtime/60,
@@ -328,7 +341,8 @@ flow_time <- data.frame(x = 0:125) %>%
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank(),
         legend.position = c(0.87, 0.65),
-        legend.background = element_rect(fill = "white", color = "black"))
+        legend.background = element_rect(fill = "white", color = "black")) +
+  theme_xaringan()
 
 # current vs time subplot
 cur_time <- ggplot(data, aes(time, he12C)) +
@@ -337,11 +351,13 @@ cur_time <- ggplot(data, aes(time, he12C)) +
   xlim(0, 125) +
   labs(title = "Ion current",
        x = "Time (min)",
-       y = "12C current (uA)")
+       y = "12C current (uA)") +
+  theme_xaringan()
 
 flow_time / cur_time
 ```
 ]
+
 ---
 
 # Currents and flows
@@ -354,14 +370,15 @@ flow_time / cur_time
 ]
 
 .pull-right[
-```{r, fig.retina = 3}
+```{r, fig.height=6, dev='svg'}
 ggplot(data, aes(co2flow, he12C)) +
   geom_smooth(span = .3, se=FALSE) +
   geom_point() +
   labs(title = "Vial dillution current",
        subtitle = "250uL/min displacement, 30ul/min delivery",
        x = "CO2 flow (ul/m)",
-       y = "12C current (uA)")
+       y = "12C current (uA)") +
+  theme_xaringan()
 ```
 ]
 
@@ -390,6 +407,7 @@ Current/target dependent?
 Constant blanks and currents allow single mass independent correction
 
 * plot: normalized Fm of blanks (dead gas, carbonates) over time 
+* plot: blanks by day, average daily current and target blank current
 
 ???
 
@@ -411,23 +429,72 @@ reproducibility of straight gas vs vial standards
 
 ---
 
-# Results - secondaries
+.left-column[
+# Secondary standards
+
+* Currents > 2uA
+* Note current dependence
+
+Data summary
+mean difference
+sd of diff
+
+]
+
+.right-column[
+.right[
+```{r, fig.height=6, fig.width=7.5, dev='svg'}
+df <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv) %>% 
+  filter(!is.na(rec_num),
+         Cur > 2) %>% 
+  mutate(fm_diff = mean - fm_consensus,
+         fm_sigma = sigma(mean, fm_consensus, merr),
+         fmbc_diff = fm_lbc - fm_consensus,
+         fmbc_sigma = sigma(fm_lbc, fm_consensus, merr))
+
+ps <- 0.3
+dw <- 0.03
+yl <- .1
+
+secs <- ggplot(df, aes(fm_consensus, fm_diff, color = Cur)) +
+  geom_hline(yintercept = 0) +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_pointrange(aes(ymin = fm_diff - merr, ymax = fm_diff + merr), 
+                  position = position_dodge2(width = dw),
+                  size = ps,) +
+  lims(x = c(-0.05, 1.1),
+       y = c(-yl, yl)) +
+  labs(title = "Difference from consensus",
+       subtitle = "Uncorrected",
+       y = "Fm difference") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        legend.direction = "horizontal",
+        legend.position = c(.88, 1),
+        legend.justification = "bottom")
+
+secs_lbc <- ggplot(df, aes(fm_consensus, fmbc_diff, color = Cur)) +
+  geom_hline(yintercept = 0) +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_pointrange(aes(ymin = fmbc_diff - merr, ymax = fmbc_diff + merr), 
+                  position = position_dodge2(width = dw),
+                  size = ps) +
+  lims(x = c(-0.05, 1.1),
+       y = c(-yl, yl)) +
+  labs(subtitle = "LBC-corrected",
+       x = "Fm consensus",
+       y = "Fm difference") +
+  theme(legend.position = "None")
+
+secs / secs_lbc
+```
+]
+]
+
+???
 
 precision, accuracy
-
-plot: secondary standard performance
-
 issues with blank and normalization
-
-```{r}
-df <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv)
-ggplot(df, aes(fm_consensus, diff)) +
-  geom_hline(yintercept = 0) +
-  geom_errorbar(aes(ymin = diff - merr, ymax = diff + merr)) +
-  geom_point() +
-  ggtitle("Difference in LBC-corrected vs consensus") +
-  theme_xaringan()
-```
 
 ---
 
