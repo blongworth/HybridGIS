@@ -1704,3 +1704,16 @@ ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
   ggtitle("Fm of live and dead CO2 vs. inverse 12C current",
           subtitle = "Fit lines should cross at Fm and current of blank")
 ```
+
+### Gas standards
+
+Use above data with gas standards normalized to solid OX-I
+
+```{r}
+rownames(ds)
+ds %>% 
+  filter(Gas == "LiveGas") %>% 
+  ggplot(aes(x = as.factor(as.numeric(rownames(.))), y = mean)) + 
+  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr))
+```
+
