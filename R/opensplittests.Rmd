@@ -1610,7 +1610,24 @@ data <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16"))  %>%
 stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
 data415 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
 
-data <- rbind(data1013, data1204, data1211, data1218, data205, data304, data409, data415)
+std <- getStdTable()
+
+data <- rbind(data1013, data1204, data1211, data1218, data205, data304, data409, data415) %>% 
+  mutate(rec_num = case_when(str_detect(Sample.Name, "LiveGas") ~ 101730,
+                             str_starts(Sample.Name, "C-1") ~ 83028,
+                             str_starts(Sample.Name, "C1") ~ 83028,
+                             str_starts(Sample.Name, "TIRI-F") ~ 2138,
+                             str_starts(Sample.Name, "TIRI-I") ~ 17185,
+                             str_starts(Sample.Name, "C-2") ~ 1082,
+                             str_starts(Sample.Name, "C2") ~ 1082,
+                             str_starts(Sample.Name, "NOSAMS") ~ 38809,
+                             str_detect(Sample.Name, "DeadGas") ~ 72446)) %>% 
+ left_join(select(std, rec_num, fm_consensus), by = "rec_num") %>% 
+ mutate(fm_consensus = case_when(rec_num == 101730 ~ 1.0398,
+                                 rec_num == 72446 ~ 0.0013,
+                                 TRUE ~ fm_consensus))
+
+data %>% distinct(wheel, Pos, Sample.Name, fm_consensus, rec_num) %>% filter(fm_consensus > 0.9)
 ```
 
 ## Current dependent blank with combined data
@@ -1622,27 +1639,40 @@ Modern
 
 ```{r}
 data %>% 
-  filter(str_detect(Sample.Name, "LiveGas")) %>% 
+  filter(!(he12C < 2.5 & normFm > 1.05) & fm_consensus > 0.9) %>% 
+  #filter(fm_consensus > 0.9) %>% 
+  #filter(str_detect(Sample.Name, "LiveGas")) %>% 
   ggplot(aes(he12C, normFm)) + 
-  geom_smooth(method = "lm") +
+  #geom_smooth(method = "lm") +
   geom_point()
+
+data %>% select(wheel, Pos, Sample.Name, he12C, fm_consensus, normFm) %>% filter(he12C < 2.5 & normFm > 1.05, fm_consensus > 0.9)
 ```
 
 Dead
 
 ```{r}
 data %>% 
-  filter(str_detect(Sample.Name, "DeadGas|Blank")) %>% 
-  ggplot(aes(1/he12C, normFm)) + 
+  #filter(str_detect(Sample.Name, "DeadGas")) %>% 
+  filter(fm_consensus < 0.1 & normFm < 0.3 & Sample.Name != "DilDeadGas6") %>% 
+  ggplot(aes(he12C, normFm)) + 
   geom_point()
+
+data %>% select(wheel, Pos, Sample.Name, he12C, fm_consensus, normFm) %>% filter(he12C < 1 & normFm < .1, fm_consensus < 0.3)
+
+filter(data, Sample.Name == "DilDeadGas6")
 ```
 
 Summarize by sample
 
 ```{r}
 ds <- sum_hgis(data) %>% 
-  filter((str_detect(Sample.Name, "LiveGas") & Cur > 1) | str_detect(Sample.Name, "DeadGas|Blank")) %>% 
-  mutate(Gas = ifelse(str_detect(Sample.Name, "LiveGas"), "LiveGas", "DeadGas"),
+  filter((str_detect(Sample.Name, "LiveGas") & Cur > 1) |
+         (str_detect(Sample.Name, "DeadGas") & Cur > 1) |
+          str_detect(Sample.Name, "Blank")) %>% 
+  mutate(Gas = case_when(str_detect(Sample.Name, "LiveGas") ~ "LiveGas",
+                         str_detect(Sample.Name, "DeadGas") ~ "DeadGas",
+                         TRUE ~ "Blank"),
          Cur_inv = 1/Cur)
 ```
 
@@ -1666,6 +1696,8 @@ dead <- ds %>%
   #geom_smooth(method = "lm") +
   geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr)) +
   geom_point()
+
+filter(ds, Cur < 1)
 ```
 
 ```{r}
@@ -1684,21 +1716,28 @@ fits <- ds %>%
          tidied = map(fit, tidy)) %>% 
   unnest(tidied) 
 
-fits %>% 
+blankfit <- fits %>% 
   select(Gas, term, estimate) %>% 
   pivot_wider(names_from = c(Gas, term), values_from = estimate) %>% 
   mutate(inv_m_blank = -(`DeadGas_(Intercept)` - `LiveGas_(Intercept)`)/(DeadGas_Cur_inv - LiveGas_Cur_inv),
          Fm_blank = `DeadGas_(Intercept)` + DeadGas_Cur_inv * inv_m_blank,
-         m_blank = 1/inv_m_blank) %>% 
+         m_blank = 1/inv_m_blank) 
+
+blankfit %>% 
   select(Fm_blank, m_blank)
+
+blankfit
 ```
 
 #### Fm vs. inverse mass with fits.
 
 ```{r}
 ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
-  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr)) + 
-  geom_smooth(method = "lm", fullrange = TRUE, se = FALSE) +
+  geom_abline(slope = blankfit$LiveGas_Cur_inv, 
+              intercept = blankfit$`LiveGas_(Intercept)`) +
+  geom_abline(slope = blankfit$DeadGas_Cur_inv, 
+              intercept = blankfit$`DeadGas_(Intercept)`) +
+  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr), size = .3) + 
   xlim(0, 10) +
   #ylim(0, 1.2)
   ggtitle("Fm of live and dead CO2 vs. inverse 12C current",
