@@ -296,8 +296,51 @@ Smallest samples require minimizing inlet volume and pressure while maintaining 
 ]
 
 .pull-right[
-plot: Results from breakseals
+```{r, fig.height=6, fig.width=7.5, dev='svg'}
+data <- get_hgis_data(here("data/USAMS052318RHIGS.txt")) %>% 
+                  mutate(Num = ifelse(Pos == 15, "S", "U"))
+stdrat <- mean(data$cor1412he[data$Num == "S" & data$outlier == FALSE])
+data_523 <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS053018R.txt"), as.Date("2018-05-30")) %>% 
+           mutate(Pos = ifelse(Sample.Name == "OX-II", 6, Pos),
+                  Num = ifelse(Pos == 5, "S", "U"))
+stdrat <- mean(data$cor1412he[data$Num == "S"])
+data_530 <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS060618R.txt")) %>% 
+  filter(Pos != 1,                           #remove spurious pos1 runs
+         !(Pos == 3 & X13.12he > 0.011)) %>%     #remove solid OX-I fliers
+                  mutate(Num = ifelse(Pos == 5, "S", "U"))
+stdrat <- mean(data$cor1412he[data$Num == "S" & data$outlier == FALSE])
+data_606 <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+
+dbd <- rbind(data_523, data_530, data_606)
+
+std <- getStdTable()
+
+dbds <- sum_hgis(dbd) %>% 
+  mutate(rec_num = case_when(str_detect(Sample.Name, "Live") ~ 101730,
+                             Sample.Name == "OX-I" ~ 34148,
+                             Sample.Name == "OX-II" ~ 34149,
+                             str_starts(Sample.Name, "C1") ~ 83028)) %>% 
+ left_join(select(std, rec_num, fm_consensus), by = "rec_num") %>% 
+ mutate(fm_consensus = case_when(rec_num == 101730 ~ 1.0398,
+                                 rec_num == 72446 ~ 0.0013,
+                                 TRUE ~ fm_consensus),
+        fm_diff = mean - fm_consensus)
+
+dbds %>% 
+  filter(Cur < 10) %>% 
+  ggplot(aes(fm_consensus, fm_diff)) +
+  geom_hline(yintercept = 0) +
+  geom_pointrange(aes(ymin = fm_diff - merr, ymax = fm_diff + merr),
+                 position = position_dodge2(width = .1),
+                 size = .5) +
+  labs(title = "Closed inlet")
+```
 ]
+
 ---
 
 .pull-left[
@@ -607,6 +650,16 @@ Targets alone and targets + helium (fm and current)
 ...but if current is kept constant, current drops out of correction
 ---
 
+```{r}
+carb_data <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv) %>% 
+  filter(!is.na(rec_num),
+         Cur > 2) %>% 
+  mutate(fm_diff = mean - fm_consensus,
+         fm_sigma = sigma(mean, fm_consensus, merr),
+         fmbc_diff = fm_lbc - fm_consensus,
+         fmbc_sigma = sigma(fm_lbc, fm_consensus, merr))
+```
+
 # Current independent blank
 
 .pull-left[
@@ -615,10 +668,27 @@ If standards, blanks, and unknowns have same current:
 linear fit used to correct
 
 $$Fm_s = Fm_m - Fm_{blk}\frac{Fm_{std} - Fm_m}{Fm_{std}}$$
+
+#### Mean Fm of blanks:
+`r carb_data %>% filter(fm_consensus < 0.1 & Cur > 2) %>% pull(mean) %>% mean() %>% format(digits = 3)`
+
 ]
 
 .pull-right[
 
+```{r, fig.height=5, dev='svg'}
+carb_data %>% filter(fm_consensus < 0.1 &
+              Cur > 2) %>% 
+  ggplot(aes(Cur, mean)) +
+  geom_errorbar(aes(ymin = mean - merr, ymax = mean + merr)) +
+  geom_errorbarh(aes(xmin = Cur - Cur.sd, xmax = Cur + Cur.sd)) +
+  geom_point(aes(color = wheel), size = 3) +
+  labs(title = "Blanks",
+       x = "Current (uA)",
+       y = "Fraction modern") +
+  theme(legend.position = c(0.85, 0.8),
+        legend.background = element_rect(fill = "white", color = "black")) 
+```
 
 ]
 
@@ -639,15 +709,6 @@ It's relatively easy to produce runs with terrible current, but usually not good
 
 ---
 
-```{r}
-df <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv) %>% 
-  filter(!is.na(rec_num),
-         Cur > 2) %>% 
-  mutate(fm_diff = mean - fm_consensus,
-         fm_sigma = sigma(mean, fm_consensus, merr),
-         fmbc_diff = fm_lbc - fm_consensus,
-         fmbc_sigma = sigma(fm_lbc, fm_consensus, merr))
-```
 
 .left-column[
 # Secondary standards
@@ -656,8 +717,8 @@ df <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv) %>
 * Note current dependence
 
 ### Data summary
-* mean difference: `r format(mean(df$fmbc_diff), digits = 1)`
-* sd of difference: `r format(sd(df$fmbc_diff), digits = 2)`
+* mean difference: `r format(mean(carb_data$fmbc_diff), digits = 1)`
+* sd of difference: `r format(sd(carb_data$fmbc_diff), digits = 2)`
 
 ]
 
@@ -669,7 +730,7 @@ ps <- 0.3
 dw <- 0.03
 yl <- .1
 
-secs <- ggplot(df, aes(fm_consensus, fm_diff, color = Cur)) +
+secs <- ggplot(carb_data, aes(fm_consensus, fm_diff, color = Cur)) +
   geom_hline(yintercept = 0) +
   geom_smooth(method = "lm", se = FALSE) +
   geom_pointrange(aes(ymin = fm_diff - merr, ymax = fm_diff + merr), 
@@ -689,7 +750,7 @@ secs <- ggplot(df, aes(fm_consensus, fm_diff, color = Cur)) +
         legend.position = c(.88, 1),
         legend.justification = "bottom")
 
-secs_lbc <- ggplot(df, aes(fm_consensus, fmbc_diff, color = Cur)) +
+secs_lbc <- ggplot(carb_data, aes(fm_consensus, fmbc_diff, color = Cur)) +
   geom_hline(yintercept = 0) +
   geom_smooth(method = "lm", se = FALSE) +
   geom_pointrange(aes(ymin = fmbc_diff - merr, ymax = fmbc_diff + merr), 
