@@ -40,6 +40,9 @@ class: center, middle, inverse, title-slide
 ]
 
 .pull-right[
+
+&lt;br&gt;
+&lt;br&gt;
 &lt;table&gt;
  &lt;thead&gt;
   &lt;tr&gt;
@@ -92,7 +95,7 @@ Performance = currents counts stability efficiency time
 .pull-left[
 * Inject CO&lt;sub&gt;2&lt;/sub&gt; gas onto Ti target
 * Sputter with Cs&lt;sup&gt;+&lt;/sup&gt;
-* Dissociate molecules (hopefully)
+* Dissociate molecules
 * Produce C&lt;sup&gt;-&lt;/sup&gt; ions (and O&lt;sup&gt;-&lt;/sup&gt;, CH&lt;sup&gt;-&lt;/sup&gt;, OH&lt;sup&gt;-&lt;/sup&gt;, CO&lt;sup&gt;-&lt;/sup&gt;...)
 * Extract C&lt;sup&gt;-&lt;/sup&gt; beam
 ]
@@ -110,19 +113,6 @@ Predicted chemistry/physics of decomposition and ionization
 
 ---
 
-# Method history
-
-Middleton?
-NEC: Xu 2006
-ETH:
-source and inlet refinement
-
-State of the art:
-- reproducibilty: 1%
-- size: &gt;= 10ug C
-- speed: XX minutes per sample or samples/day
-
----
 
 .pull-left[
 # The NEC HGIS
@@ -131,12 +121,15 @@ State of the art:
 * Modified to allow easy switch between solid and hybrid operation
 * Rest is gas handling
 
-&lt;img src="images/hgis_arm_source.jpeg" height="550px" style="display: block; margin: auto;" /&gt;
-![source photo](images/hgis_arm_source.jpeg)
+&lt;br&gt;
+
+&lt;img src="images/hgis_arm_source.jpeg" width="80%" style="display: block; margin: auto;" /&gt;
 ]
 
 .pull-right[
+.center[
 ![NEC gas arm](images/HGIS_arm_drawing.svg)
+]
 ]
 
 ???
@@ -155,8 +148,8 @@ Potential for:
 ]
 
 .pull-right[
-![HGIS Target](images/target_cutaway.jpeg)
-NEC Hybrid target cutaway
+![HGIS Target](images/target_cutaway.svg)
+NEC hybrid target cutaway
 ]
 
 ---
@@ -171,7 +164,7 @@ NEC Hybrid target cutaway
 
 ### Results
 * ~10μA &lt;sup&gt;12&lt;/sup&gt;C&lt;sup&gt;-&lt;/sup&gt;
-* &lt;1% precision
+* &lt;1% precision (SE of repeat measurements)
 * 1% blank
 * 1-3% total efficiency
 ]
@@ -182,38 +175,49 @@ NEC Hybrid target cutaway
 
 ---
 
-# Inlet systems
+# Inlet/interface systems
+
+Adapter between CO2 producers and source. 
+
+Goal: constant flow of CO2 to source at correct rate.
 
 ### `$$PV=nRT$$`
 
-AKA interfaces
+Constant flow of CO2 to source produces constant currents, which reduces ratio variability.
 
-Closed vs Open
+Gas inlet controls flow of CO2 to source by varying pressure, volume, and gas composition.
 
-Introduce steady, reproducible current as key to data quality
 
-Dilution
+### Pressure
+Dilution with helium
 
 Makes moving small amounts of gas easier by increasing pressure
 
 Source doesn't care about helium as long as it gets its CO2
-pumping issues
-
-Gas delivered at set rate
-
-For a given sample size:
-* High inlet volume = low inlet pressure (NEC inlet)
-* Low inlet volume = high inlet pressure (Ionplus inlet)
 
 
-Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
+* Open inlets maintain constant atmospheric pressure, producing constant&lt;sup&gt;1&lt;/sup&gt; flow to source
+
+.footnote[ [1] flow varies by composition due to differing viscosity]
+
+???
+
+Introduce steady, reproducible current as key to data quality
 
 ---
 
 .pull-left[
-# Inlet systems - closed inlet
+# Closed inlet
 
-IRMS dual bellows
+Closed inlets allow flow control by changing pressure (adding gas) or volume (bellows or syringe) to control gas flow to source.
+
+#### For a given sample size:
+* High inlet volume = low inlet pressure (NEC inlet)
+* Low inlet volume = high inlet pressure (Ionplus inlet)
+
+#### IRMS dual bellows
+
+Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
 
 * VG Prism dual bellows
 * LabVIEW interface
@@ -236,16 +240,9 @@ plot: Results from breakseals
 
 ---
 
-# Open split development
-
-development
-
-photo: gas panel
-
----
-
 .pull-left[
 # Open split
+
 
 Use helium to displace CO2 from vials into split.
 
@@ -259,36 +256,41 @@ Capillary to source controls gas flow
 ]
 ---
 
-.pull-left[
 # Carbonate method
 
-Sample preparation
+.pull-left[
+#### Sample preparation
 
+* Evacuate vial
 * Add acid to carbonate
-* Fill vial with CO2 at 1 ATM
+* Fills vial with CO2 at 1 ATM
 
-Measurement
+#### Measurement
 
-Pre-sputter target
-Displace sample 
-Measurement
-
+* Pre-sputter target
+* Displace sample 
+* Measurement
 ]
 
 .pull-right[
-
-figure: DAG graph of process
 .center.middle[![gilson autosampler](images/gilson.png)]
 ]
 
 ???
 
 table: comparison of carbonate methods
+figure: DAG graph of process
 
 ---
 
 .pull-left[
 # Currents and flows
+
+Helium displacement of CO&lt;sub&gt;2&lt;/sub&gt; from vial. Monitor currents and ratios as [CO&lt;sub&gt;2&lt;/sub&gt;] decreases.
+
+* No current suppresion at high CO&lt;sub&gt;2&lt;/sub&gt;
+* Current stable until 40 min
+* Corresponds to 2mL CO&lt;sub&gt;2&lt;/sub&gt;
 
 Balancing analysis time and flow rates to maximize stable currents and minimize sample size
 ]
@@ -325,10 +327,16 @@ Lead into blank on next slide
 
 ---
 
-# Results - blanks
+# Blanks
+
+Blank = Ion current not from sample gas
 
 ## Current dependent blank
 
+### Measured blank
+
+Targets alone and targets + helium produce:
+* Fm
 * Plot: ratio vs current for blanks and livegas
 * plot: current dependent blanks with intersect
 
@@ -342,9 +350,139 @@ Constant blanks and currents allow single mass independent correction
 
 ???
 
+3 ways to control blank
+* Reduce blank - better cleaning, presputtering
+* Hold standard, blank, unknown current constant and use current independent correction (linear correction based on dead sample Fm)   
+* Determine Fm and current of blank and use current dependent correction (current balance model)
 Idea: use data from dillution runs of live and dead gas to create curves
 
 It's relatively easy to produce runs with terrible current, but usually not good for blank as caused by other issues.
+
+---
+
+
+
+.left-column[
+# Secondary standards
+
+* Currents &gt; 2μA
+* Note current dependence
+
+### Data summary
+* mean difference: 0.003
+* sd of difference: 0.017
+
+]
+
+.right-column[
+.right[
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-8-1.svg)&lt;!-- --&gt;
+]
+]
+
+???
+
+precision, accuracy
+issues with blank and normalization
+
+---
+
+# Sample size reduction
+
+Open split defines pressure, therefore
+
+smaller samples = higher dilution = higher flow
+
+plot: sample size vs. required flow
+
+pressure control to maintain constant CO2 to source
+
+plot: dilution modelling plot
+figure: setup with pressure control
+
+---
+
+# MICADAS
+
+Source differences
+* one target in source at a time
+* gas supplied via conical joint in side of target
+
+Inlet differences
+* MICADAS uses closed system
+* CO&lt;sub&gt;2&lt;/sub&gt; from carbonates transferred onto resin trap in stream of he
+* Sample introduced by adding helium and adjusting flow using variable volume
+
+???
+
+More pronounced current vs. flow curve makes measurement more difficult at variable CO2 flow.
+Salazar and Szidat are developing an open split interface with EA - squish peak with dead volume
+
+photo: micadas source
+
+---
+
+# Summary
+
+NOSAMS has developed a successful method for analysing carbonates with an open-split interface delivering gas to a NEC MCSNICS gas-accepting Cesium sputter ion source.
+
+Current goals:
+* finish characterization of the method
+* Comparison to graphite with test samples
+* Improve accuracy
+* Better understand method blank
+* Reduce sample size
+
+---
+
+# Thank You!
+
+Mark Roberts, Josh Burton, Josh Hlavenka, Al Gagnon, Kalina Gospodinova, and the staff of NOSAMS
+
+Karl von Reden
+
+Cam McIntyre, SUERC
+
+Ted Ognibene, CAMS
+
+&lt;br&gt;
+&lt;br&gt;
+
+&lt;table style="width:100%"&gt;
+&lt;tr&gt;
+&lt;td&gt;
+&lt;img src="images/NOSAMS_logo_transparent.png"&gt;
+&lt;/td&gt;
+&lt;td&gt;
+&lt;img src="images/WHOI_PrimaryLogo_DarkBlueType_RGB.png"&gt;
+&lt;/td&gt;
+&lt;td&gt;
+&lt;img src="images/NSF_4-Color_bitmap_Logo.png"&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+---
+
+# Extra slides
+
+---
+# NEC/Ionplus inlets
+
+compare high and low volume approach
+
+---
+
+# Method history
+
+Middleton?
+NEC: Xu 2006
+ETH:
+source and inlet refinement
+
+State of the art:
+- reproducibilty: 1%
+- size: &gt;= 10μg C
+- speed: XX minutes per sample or samples/day
 
 ---
 
@@ -360,71 +498,11 @@ reproducibility of straight gas vs vial standards
 
 ---
 
-.left-column[
-# Secondary standards
+# Open split development
 
-* Currents &gt; 2uA
-* Note current dependence
+development
 
-Data summary
-mean difference
-sd of diff
-
-]
-
-.right-column[
-.right[
-![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-7-1.svg)&lt;!-- --&gt;
-]
-]
-
-???
-
-precision, accuracy
-issues with blank and normalization
-
----
-
-# Sample size reduction
-
-high dillution, high flow
-pressure control to maintain constant CO2 to source
-
-plot: dillution modelling plot
-figure: setup with pressure control
-
----
-
-# MICADAS
-
-source differences
-* one target in source at a time
-* gas supplied via conical joint in side of target
-
-
-photo: micadas source
-
----
-
-# MICADAS - Carbonate method
-
-inlet/method differences
-* micadas uses closed system
-* co2 from carbonates transferred onto resin trap in stream of he
-* sample introduced by adding helium and adjusting flow using variable volume
-
-More pronounced current vs. flow curve makes measurement more difficult at variable CO2 flow.
-Salazar and Szidat are developing an open split interface with EA - squish peak with dead volume
-
----
-
-# Summary
-
----
-
-# NEC/Ionplus inlets
-
-compare high and low volume approach
+photo: gas panel
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
