@@ -177,18 +177,40 @@ NEC hybrid target cutaway
 
 # Inlet/interface systems
 
+.pull-left[
 Adapter between CO2 producers and source. 
 
-Goal: constant flow of CO2 to source at correct rate.
+Goal: constant flow of CO2 to source at ideal rate.
 
+Increase flow by
+* increasing pCO2
+* reducing volume
+
+Gas mixtures - partial pressure
+* adding another gas increases pressure and total flow
+* reduces pCO2
+* CO2 remains constant? No- viscosity
+]
+
+.pull-right[
+
+&lt;br&gt;
 ### `$$PV=nRT$$`
 
-Constant flow of CO2 to source produces constant currents, which reduces ratio variability.
+![](images/inlet_flow_diag.svg)
 
+]
+
+???
+
+Pressure of CO2 in inlet controls flow in capillary
+
+P = flow = current
+
+* increase partial pressure of CO2 by dilution?
 Gas inlet controls flow of CO2 to source by varying pressure, volume, and gas composition.
 
 
-### Pressure
 Dilution with helium
 
 Makes moving small amounts of gas easier by increasing pressure
@@ -196,28 +218,46 @@ Makes moving small amounts of gas easier by increasing pressure
 Source doesn't care about helium as long as it gets its CO2
 
 
-* Open inlets maintain constant atmospheric pressure, producing constant&lt;sup&gt;1&lt;/sup&gt; flow to source
-
-.footnote[ [1] flow varies by composition due to differing viscosity]
-
-???
-
 Introduce steady, reproducible current as key to data quality
+Constant flow of CO2 to source produces constant currents, which reduces ratio variability.
 
 ---
 
 .pull-left[
 # Closed inlet
 
-Closed inlets allow flow control by changing pressure (adding gas) or volume (bellows or syringe) to control gas flow to source.
+### Flow control
+* Change volume
+* Add CO2
+* Add Helium
 
-#### For a given sample size:
+
+### For a given sample size:
 * High inlet volume = low inlet pressure (NEC inlet)
 * Low inlet volume = high inlet pressure (Ionplus inlet)
 
+&lt;br&gt;
+Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
+]
+
+.pull-right[
+![IRMS inlet photo](images/dual_bellows.png)
+]
+
+???
+
+* Mechanically more complex
+* Extra sample transfer time
+* but can be done during burn-in
+* Data/performance simpler
+
+---
+
+# NOSAMS Closed inlet
+
+.pull-left[
 #### IRMS dual bellows
 
-Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
 
 * VG Prism dual bellows
 * LabVIEW interface
@@ -229,24 +269,22 @@ Smallest samples require minimizing inlet volume and pressure while maintaining 
 ]
 
 .pull-right[
-![IRMS inlet photo](images/dual_bellows.png)
-]
-
----
-
-# Closed inlet results
-
 plot: Results from breakseals
-
+]
 ---
 
 .pull-left[
 # Open split
 
+P and V are held constant, so only mixture controls pCO2
 
 Use helium to displace CO2 from vials into split.
 
 Capillary to source controls gas flow
+
+Open inlets maintain constant atmospheric pressure, producing constant&lt;sup&gt;1&lt;/sup&gt; flow to source
+
+.footnote[ [1] flow varies by composition due to differing viscosity]
 
 ![open split diagram](images/HGIS_open_split_drawing.svg)
 ]
@@ -254,6 +292,14 @@ Capillary to source controls gas flow
 .pull-right[
 &lt;img src="images/gas_control.jpg" height="550px" style="display: block; margin: auto;" /&gt;
 ]
+
+???
+
+* Mechanically/operationally simple
+* Harder to control current variability
+    * during run
+    * if sample size differs
+
 ---
 
 # Carbonate method
@@ -327,28 +373,68 @@ Lead into blank on next slide
 
 ---
 
-# Blanks
 
-Blank = Ion current not from sample gas
+
+.pull-left[
 
 ## Current dependent blank
 
-### Measured blank
+`$$I_{sample} + I_{blank} = I_{meas}$$`
+`$$Fm_m=Fm_bI_b+Fm_sI_s$$`
 
-Targets alone and targets + helium produce:
-* Fm
-* Plot: ratio vs current for blanks and livegas
-* plot: current dependent blanks with intersect
+`$$Fm_s = Fm_m + \frac{I_b(Fm_m-Fm_b)}{I_m-I_b}$$`
+
+0.1uA blank current with 10uA total means 1% blank
+
+Modeled blank:
+* Fm: 0.425
+* Current: 0.114 uA
+
+Measured blank:
+* Fm: 0.819
+* Current: 0.121
+
+]
+
+.pull-right[
+
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-8-1.svg)&lt;!-- --&gt;
+
+
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-9-1.svg)&lt;!-- --&gt;
+]
+
+
+???
+
+Blank = Ion current not from sample gas
+
+Targets alone and targets + helium (fm and current)
+
+...but if current is kept constant, current drops out of correction
+---
+
+# Current independent blank
+
+.pull-left[
+If standards, blanks, and unknowns have same current:
+
+linear fit used to correct
+
+`$$Fm_s = Fm_m - Fm_{blk}\frac{Fm_{std} - Fm_m}{Fm_{std}}$$`
+]
+
+.pull-right[
+
+
+]
+
+???
 
 ## Current independent correction
 
 Current/target dependent?
 Constant blanks and currents allow single mass independent correction
-
-* plot: normalized Fm of blanks (dead gas, carbonates) over time 
-* plot: blanks by day, average daily current and target blank current
-
-???
 
 3 ways to control blank
 * Reduce blank - better cleaning, presputtering
@@ -376,7 +462,7 @@ It's relatively easy to produce runs with terrible current, but usually not good
 
 .right-column[
 .right[
-![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-8-1.svg)&lt;!-- --&gt;
+![](SNEAP2021_HGIS_presentation_files/figure-html/unnamed-chunk-11-1.svg)&lt;!-- --&gt;
 ]
 ]
 

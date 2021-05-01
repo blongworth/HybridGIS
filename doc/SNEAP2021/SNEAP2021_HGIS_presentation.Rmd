@@ -28,6 +28,7 @@ library(patchwork)
 library(amstools)
 library(gt)
 library(knitr)
+library(broom)
 
 # Colors
 dark_blue <- "#041e42"
@@ -203,18 +204,40 @@ read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
 
 # Inlet/interface systems
 
+.pull-left[
 Adapter between CO2 producers and source. 
 
-Goal: constant flow of CO2 to source at correct rate.
+Goal: constant flow of CO2 to source at ideal rate.
 
+Increase flow by
+* increasing pCO2
+* reducing volume
+
+Gas mixtures - partial pressure
+* adding another gas increases pressure and total flow
+* reduces pCO2
+* CO2 remains constant? No- viscosity
+]
+
+.pull-right[
+
+<br>
 ### $$PV=nRT$$
 
-Constant flow of CO2 to source produces constant currents, which reduces ratio variability.
+![](images/inlet_flow_diag.svg)
 
+]
+
+???
+
+Pressure of CO2 in inlet controls flow in capillary
+
+P = flow = current
+
+* increase partial pressure of CO2 by dilution?
 Gas inlet controls flow of CO2 to source by varying pressure, volume, and gas composition.
 
 
-### Pressure
 Dilution with helium
 
 Makes moving small amounts of gas easier by increasing pressure
@@ -222,28 +245,46 @@ Makes moving small amounts of gas easier by increasing pressure
 Source doesn't care about helium as long as it gets its CO2
 
 
-* Open inlets maintain constant atmospheric pressure, producing constant<sup>1</sup> flow to source
-
-.footnote[ [1] flow varies by composition due to differing viscosity]
-
-???
-
 Introduce steady, reproducible current as key to data quality
+Constant flow of CO2 to source produces constant currents, which reduces ratio variability.
 
 ---
 
 .pull-left[
 # Closed inlet
 
-Closed inlets allow flow control by changing pressure (adding gas) or volume (bellows or syringe) to control gas flow to source.
+### Flow control
+* Change volume
+* Add CO2
+* Add Helium
 
-#### For a given sample size:
+
+### For a given sample size:
 * High inlet volume = low inlet pressure (NEC inlet)
 * Low inlet volume = high inlet pressure (Ionplus inlet)
 
+<br>
+Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
+]
+
+.pull-right[
+![IRMS inlet photo](images/dual_bellows.png)
+]
+
+???
+
+* Mechanically more complex
+* Extra sample transfer time
+    * but can be done during burn-in
+* Data/performance simpler
+
+---
+
+# NOSAMS Closed inlet
+
+.pull-left[
 #### IRMS dual bellows
 
-Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
 
 * VG Prism dual bellows
 * LabVIEW interface
@@ -255,24 +296,22 @@ Smallest samples require minimizing inlet volume and pressure while maintaining 
 ]
 
 .pull-right[
-![IRMS inlet photo](images/dual_bellows.png)
-]
-
----
-
-# Closed inlet results
-
 plot: Results from breakseals
-
+]
 ---
 
 .pull-left[
 # Open split
 
+P and V are held constant, so only mixture controls pCO2
 
 Use helium to displace CO2 from vials into split.
 
 Capillary to source controls gas flow
+
+Open inlets maintain constant atmospheric pressure, producing constant<sup>1</sup> flow to source
+
+.footnote[ [1] flow varies by composition due to differing viscosity]
 
 ![open split diagram](images/HGIS_open_split_drawing.svg)
 ]
@@ -282,6 +321,14 @@ Capillary to source controls gas flow
 knitr::include_graphics("images/gas_control.jpg")
 ```
 ]
+
+???
+
+* Mechanically/operationally simple
+* Harder to control current variability
+    * during run
+    * if sample size differs
+
 ---
 
 # Carbonate method
@@ -398,28 +445,189 @@ Lead into blank on next slide
 
 ---
 
-# Blanks
+```{r, fig.height = 4, dev='svg'}
+data<- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-17")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data1013 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
 
-Blank = Ion current not from sample gas
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-04")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data1204 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data1211 <- get_hgis_data(here("data/USAMS120320R.txt")) %>% 
+  filter(Pos %in% 1:4 | as.Date(ts) == "2020-12-11")
+
+data <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2020-12-18")) %>% 
+  filter(Pos != 0) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data1218 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data0108 <- get_hgis_data(here("data/USAMS120320R.txt"), as.Date("2021-01-08"))
+
+data <- get_hgis_data(here("data/USAMS020521R.txt")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data205 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS030421R.txt"), as.Date("2021-03-05")) %>% 
+  mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data304 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-09")) %>% 
+  mutate(Num = ifelse(Pos %in% c(22, 24), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data409 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+data <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-04-16"))  %>% 
+  mutate(Num = ifelse(Pos %in% c(22, 24), "S", ifelse(Num == "S", "U", Num)))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data415 <- data %>% mutate(normFm = norm_gas(cor1412he, stdrat))
+
+std <- getStdTable()
+
+data <- rbind(data1013, data1204, data1211, data1218, data205, data304, data409, data415) %>% 
+  mutate(rec_num = case_when(str_detect(Sample.Name, "LiveGas") ~ 101730,
+                             str_starts(Sample.Name, "C-1") ~ 83028,
+                             str_starts(Sample.Name, "C1") ~ 83028,
+                             str_starts(Sample.Name, "TIRI-F") ~ 2138,
+                             str_starts(Sample.Name, "TIRI-I") ~ 17185,
+                             str_starts(Sample.Name, "C-2") ~ 1082,
+                             str_starts(Sample.Name, "C2") ~ 1082,
+                             str_starts(Sample.Name, "NOSAMS") ~ 38809,
+                             str_detect(Sample.Name, "DeadGas") ~ 72446)) %>% 
+ left_join(select(std, rec_num, fm_consensus), by = "rec_num") %>% 
+ mutate(fm_consensus = case_when(rec_num == 101730 ~ 1.0398,
+                                 rec_num == 72446 ~ 0.0013,
+                                 TRUE ~ fm_consensus))
+
+# Summarize by target
+ds <- sum_hgis(data) %>% 
+  filter((str_detect(Sample.Name, "LiveGas") & Cur > 1) |
+         (str_detect(Sample.Name, "DeadGas") & Cur > 1) |
+          str_detect(Sample.Name, "Blank")) %>% 
+  mutate(Gas = case_when(str_detect(Sample.Name, "LiveGas") ~ "LiveGas",
+                         str_detect(Sample.Name, "DeadGas") ~ "DeadGas",
+                         TRUE ~ "Blank"),
+         Cur_inv = 1/Cur)
+
+# Fit linear model
+fits <- ds %>% 
+  ungroup() %>% 
+  nest(data = -Gas) %>% 
+  mutate(fit = map(data, ~lm(mean ~ Cur_inv, data = .x)),
+         tidied = map(fit, tidy)) %>% 
+  unnest(tidied) 
+
+blankfit <- fits %>% 
+  select(Gas, term, estimate) %>% 
+  pivot_wider(names_from = c(Gas, term), values_from = estimate) %>% 
+  mutate(inv_m_blank = -(`DeadGas_(Intercept)` - `LiveGas_(Intercept)`)/(DeadGas_Cur_inv - LiveGas_Cur_inv),
+         Fm_blank = `DeadGas_(Intercept)` + DeadGas_Cur_inv * inv_m_blank,
+         m_blank = 1/inv_m_blank) 
+
+# Modeled Fm and mass of blank
+blank_val <- blankfit %>% 
+  select(Fm_blank, m_blank)
+```
+
+.pull-left[
 
 ## Current dependent blank
 
-### Measured blank
+$$I_{sample} + I_{blank} = I_{meas}$$
+$$Fm_m=Fm_bI_b+Fm_sI_s$$
 
-Targets alone and targets + helium produce:
-* Fm
-* Plot: ratio vs current for blanks and livegas
-* plot: current dependent blanks with intersect
+$$Fm_s = Fm_m + \frac{I_b(Fm_m-Fm_b)}{I_m-I_b}$$
+
+0.1uA blank current with 10uA total means 1% blank
+
+Modeled blank:
+* Fm: `r format(blank_val$Fm_blank, digits = 3)`
+* Current: `r format(blank_val$m_blank, digits = 3)` uA
+
+Measured blank:
+* Fm: `r ds %>% filter(Gas == "Blank") %>% pull(mean) %>% mean() %>% format(digits = 3)`
+* Current: `r ds %>% filter(Gas == "Blank") %>% pull(Cur) %>% mean() %>% format(digits = 3)`
+
+]
+
+.pull-right[
+
+```{r, fig.height = 4, dev='svg'}
+xl <- 8
+
+livefm_cur <- data %>% 
+  filter(!(he12C < 2.5 & normFm > 1.05) & fm_consensus > 0.9) %>% 
+  ggplot(aes(he12C, normFm)) + 
+  geom_point() +
+  xlim(0, xl) +
+  ylim(.8, 1.2) +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+
+deadfm_cur <- data %>% 
+  filter(fm_consensus < 0.1 & normFm < 0.3 & Sample.Name != "DilDeadGas6") %>% 
+  ggplot(aes(he12C, normFm)) + 
+  geom_point() +
+  xlim(0, xl) +
+  ylim(0, .4) 
+
+livefm_cur / deadfm_cur
+```
+
+
+```{r, fig.height = 4, dev='svg'}
+# Plot of data and model with measured blanks
+ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
+  geom_abline(slope = blankfit$LiveGas_Cur_inv, 
+              intercept = blankfit$`LiveGas_(Intercept)`) +
+  geom_abline(slope = blankfit$DeadGas_Cur_inv, 
+              intercept = blankfit$`DeadGas_(Intercept)`) +
+  geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr), size = .3) + 
+  xlim(0, 10) +
+  #ylim(0, 1.2)
+  ggtitle("Fm of live and dead CO2 vs. inverse 12C current",
+          subtitle = "Fit lines should cross at Fm and current of blank") +
+  theme(legend.position = c(0.9, 0.8),
+        legend.background = element_rect(fill = "white", color = "black")) 
+```
+]
+
+
+???
+
+Blank = Ion current not from sample gas
+
+Targets alone and targets + helium (fm and current)
+
+...but if current is kept constant, current drops out of correction
+---
+
+# Current independent blank
+
+.pull-left[
+If standards, blanks, and unknowns have same current:
+
+linear fit used to correct
+
+$$Fm_s = Fm_m - Fm_{blk}\frac{Fm_{std} - Fm_m}{Fm_{std}}$$
+]
+
+.pull-right[
+
+
+]
+
+???
 
 ## Current independent correction
 
 Current/target dependent?
 Constant blanks and currents allow single mass independent correction
-
-* plot: normalized Fm of blanks (dead gas, carbonates) over time 
-* plot: blanks by day, average daily current and target blank current
-
-???
 
 3 ways to control blank
 * Reduce blank - better cleaning, presputtering
