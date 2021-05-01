@@ -17,7 +17,7 @@ output:
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.showtext = TRUE)
 
 # Libraries
 library(tidyverse)
@@ -90,7 +90,8 @@ methods <- tribble(~" ", ~"Graphite", ~"CFAMS ECR GIS", ~"Hybrid GIS",
                    "Precision", "0.3%", "1%", "1%",
                    "Background", "0.1 pmc", "1 pmc", "1 pmc")
 methods %>% 
-  kable(format = "html")
+  kable(format = "html",
+        caption = "Comparison of AMS methods")
 
 ```
 ]
@@ -106,6 +107,7 @@ Performance = currents counts stability efficiency time
 
 ### $$CO_2+e^- \longrightarrow C^-+2O^-$$
 
+<br>
 .pull-left[
 * Inject CO<sub>2</sub> gas onto Ti target
 * Sputter with Cs<sup>+</sup>
@@ -127,14 +129,12 @@ Predicted chemistry/physics of decomposition and ionization
 
 ---
 
-
-.pull-left[
 # The NEC HGIS
 
-
-* Modified to allow easy switch between solid and hybrid operation
+.pull-left[
+* Introduce gas to back of cathode
 * Rest is gas handling
-
+<br>
 <br>
 
 ```{r, echo=FALSE, fig.align='center', out.width="80%"}
@@ -144,7 +144,7 @@ knitr::include_graphics("images/hgis_arm_source.jpeg")
 
 .pull-right[
 .center[
-![NEC gas arm](images/HGIS_arm_drawing.svg)
+<img src="images/HGIS_arm_drawing.svg" width="60%" />
 ]
 ]
 
@@ -176,7 +176,7 @@ NEC hybrid target cutaway
 ### Conditions
 * Modern and dead CO<sub>2</sub>
 * 8m x 50 μm capillary
-* 0-4 atm. supply pressure
+* 0-4 atm supply pressure
 
 ### Results
 * ~10μA <sup>12</sup>C<sup>-</sup>
@@ -196,7 +196,9 @@ read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
           x = "Flow (μl/min)", 
           y = "Source current (μA)") +
   theme_classic() +
-  theme_xaringan(title_font_size = 26)
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 16,
+                 background_color = "#ffffff")
 ```
 ]
 
@@ -205,18 +207,18 @@ read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
 # Inlet/interface systems
 
 .pull-left[
-Adapter between CO2 producers and source. 
+Adapter between CO<sub>2</sub> producers and source. 
 
-Goal: constant flow of CO2 to source at ideal rate.
+Goal: constant flow of CO<sub>2</sub> to source at ideal rate.
 
 Increase flow by
-* increasing pCO2
+* increasing pCO<sub>2</sub>
 * reducing volume
 
 Gas mixtures - partial pressure
 * adding another gas increases pressure and total flow
-* reduces pCO2
-* CO2 remains constant? No- viscosity
+* reduces pCO<sub>2</sub>
+* CO<sub>2</sub> remains constant? No- viscosity
 ]
 
 .pull-right[
@@ -230,23 +232,23 @@ Gas mixtures - partial pressure
 
 ???
 
-Pressure of CO2 in inlet controls flow in capillary
+Pressure of CO<sub>2</sub> in inlet controls flow in capillary
 
 P = flow = current
 
-* increase partial pressure of CO2 by dilution?
-Gas inlet controls flow of CO2 to source by varying pressure, volume, and gas composition.
+* increase partial pressure of CO<sub>2</sub> by dilution?
+Gas inlet controls flow of CO<sub>2</sub> to source by varying pressure, volume, and gas composition.
 
 
 Dilution with helium
 
 Makes moving small amounts of gas easier by increasing pressure
 
-Source doesn't care about helium as long as it gets its CO2
+Source doesn't care about helium as long as it gets its CO<sub>2</sub>
 
 
 Introduce steady, reproducible current as key to data quality
-Constant flow of CO2 to source produces constant currents, which reduces ratio variability.
+Constant flow of CO<sub>2</sub> to source produces constant currents, which reduces ratio variability.
 
 ---
 
@@ -255,7 +257,7 @@ Constant flow of CO2 to source produces constant currents, which reduces ratio v
 
 ### Flow control
 * Change volume
-* Add CO2
+* Add CO<sub>2</sub>
 * Add Helium
 
 
@@ -267,8 +269,9 @@ Constant flow of CO2 to source produces constant currents, which reduces ratio v
 Smallest samples require minimizing inlet volume and pressure while maintaining good flow control
 ]
 
-.pull-right[
-![IRMS inlet photo](images/dual_bellows.png)
+.pull-right.center[
+<br><br><br>
+<img src="images/dual_bellows.png" width="80%" />
 ]
 
 ???
@@ -337,7 +340,13 @@ dbds %>%
   geom_pointrange(aes(ymin = fm_diff - merr, ymax = fm_diff + merr),
                  position = position_dodge2(width = .1),
                  size = .5) +
-  labs(title = "Closed inlet")
+  labs(title = "Closed inlet",
+       x = "Expected Fm",
+       y = "Fm difference") +
+  theme_classic() +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 16,
+                 background_color = "#ffffff")
 ```
 ]
 
@@ -346,9 +355,9 @@ dbds %>%
 .pull-left[
 # Open split
 
-P and V are held constant, so only mixture controls pCO2
+P and V are held constant, so only mixture controls pCO<sub>2</sub>
 
-Use helium to displace CO2 from vials into split.
+Use helium to displace CO<sub>2</sub> from vials into split.
 
 Capillary to source controls gas flow
 
@@ -359,10 +368,9 @@ Open inlets maintain constant atmospheric pressure, producing constant<sup>1</su
 ![open split diagram](images/HGIS_open_split_drawing.svg)
 ]
 
-.pull-right[
-```{r, echo=FALSE, fig.align='center', out.height='550px'}
-knitr::include_graphics("images/gas_control.jpg")
-```
+.pull-right.center[
+<br><br><br>
+<img src="images/gas_control.jpg" width="75%" />
 ]
 
 ???
@@ -381,7 +389,7 @@ knitr::include_graphics("images/gas_control.jpg")
 
 * Evacuate vial
 * Add acid to carbonate
-* Fills vial with CO2 at 1 ATM
+* Fills vial with CO<sub>2</sub> at 1 atm
 
 #### Measurement
 
@@ -391,7 +399,7 @@ knitr::include_graphics("images/gas_control.jpg")
 ]
 
 .pull-right[
-.center.middle[![gilson autosampler](images/gilson.png)]
+.center[![gilson autosampler](images/gilson.png)]
 ]
 
 ???
@@ -404,13 +412,13 @@ figure: DAG graph of process
 .pull-left[
 # Currents and flows
 
-Helium displacement of CO<sub>2</sub> from vial. Monitor currents and ratios as [CO<sub>2</sub>] decreases.
+Helium displacement of CO<sub>2</sub> from vial. Monitor currents and ratios as pCO<sub>2</sub> decreases.
 
 * No current suppresion at high CO<sub>2</sub>
 * Current stable until 40 min
 * Corresponds to 2mL CO<sub>2</sub>
 
-Balancing analysis time and flow rates to maximize stable currents and minimize sample size
+Balance flow rates to maximize stable currents and minimize sample size
 ]
 
 
@@ -431,7 +439,9 @@ flow_time <- data.frame(x = 0:125) %>%
        subtitle = "7mL vial, 244μL/min helium, 30μl/min to source",
        y = "Gas flow (μL/min)") +
   theme_classic() +
-  theme_xaringan(title_font_size = 26) +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 18,
+                 background_color = "#ffffff") +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank(),
         legend.position = c(0.87, 0.65),
@@ -446,7 +456,9 @@ cur_time <- ggplot(data, aes(time, he12C)) +
        x = "Time (min)",
        y = "12C current (μA)") +
   theme_classic() +
-  theme_xaringan(title_font_size = 26)
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 18,
+                 background_color = "#ffffff")
 
 flow_time / cur_time
 ```
@@ -472,7 +484,10 @@ ggplot(data, aes(co2flow, he12C)) +
        subtitle = "250μL/min displacement, 30μl/min delivery",
        x = "CO2 flow (μl/m)",
        y = "12C current (μA)") +
-  theme_xaringan()
+  theme_classic() +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 16,
+                 background_color = "#ffffff")
 ```
 ]
 
@@ -579,22 +594,22 @@ blank_val <- blankfit %>%
 
 .pull-left[
 
-## Current dependent blank
+# Current dependent blank
 
 $$I_{sample} + I_{blank} = I_{meas}$$
 $$Fm_m=Fm_bI_b+Fm_sI_s$$
 
 $$Fm_s = Fm_m + \frac{I_b(Fm_m-Fm_b)}{I_m-I_b}$$
 
-0.1uA blank current with 10uA total means 1% blank
+0.1μA blank current with 10μA total means 1% blank
 
 Modeled blank:
 * Fm: `r format(blank_val$Fm_blank, digits = 3)`
-* Current: `r format(blank_val$m_blank, digits = 3)` uA
+* Current: `r format(blank_val$m_blank, digits = 3)` μA
 
 Measured blank:
 * Fm: `r ds %>% filter(Gas == "Blank") %>% pull(mean) %>% mean() %>% format(digits = 3)`
-* Current: `r ds %>% filter(Gas == "Blank") %>% pull(Cur) %>% mean() %>% format(digits = 3)`
+* Current: `r ds %>% filter(Gas == "Blank") %>% pull(Cur) %>% mean() %>% format(digits = 3)` μA
 
 ]
 
@@ -609,7 +624,13 @@ livefm_cur <- data %>%
   geom_point() +
   xlim(0, xl) +
   ylim(.8, 1.2) +
+  ggtitle("Ratio vs current") +
+  theme_classic() +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 18,
+                 background_color = "#ffffff") +
   theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         axis.text.x = element_blank())
 
 deadfm_cur <- data %>% 
@@ -617,9 +638,16 @@ deadfm_cur <- data %>%
   ggplot(aes(he12C, normFm)) + 
   geom_point() +
   xlim(0, xl) +
-  ylim(0, .4) 
+  ylim(0, .4) +
+  xlab("12C Current (μA)") +
+  theme_classic() +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 18,
+                 background_color = "#ffffff")
 
-livefm_cur / deadfm_cur
+(livefm_cur / deadfm_cur) +
+  ylab("Fraction modern") +
+  theme(axis.title.y = element_text(hjust=-1)) 
 ```
 
 
@@ -633,9 +661,13 @@ ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
   geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr), size = .3) + 
   xlim(0, 10) +
   #ylim(0, 1.2)
-  ggtitle("Fm of live and dead CO2 vs. inverse 12C current",
-          subtitle = "Fit lines should cross at Fm and current of blank") +
-  theme(legend.position = c(0.9, 0.8),
+  ggtitle("Modelled blank",
+          subtitle = "Fits cross at Fm and current of blank") +
+  theme_classic() +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 16,
+                 background_color = "#ffffff") +
+  theme(legend.position = "none",
         legend.background = element_rect(fill = "white", color = "black")) 
 ```
 ]
@@ -684,9 +716,13 @@ carb_data %>% filter(fm_consensus < 0.1 &
   geom_errorbarh(aes(xmin = Cur - Cur.sd, xmax = Cur + Cur.sd)) +
   geom_point(aes(color = wheel), size = 3) +
   labs(title = "Blanks",
-       x = "Current (uA)",
+       x = "12C Current (μA)",
        y = "Fraction modern") +
-  theme(legend.position = c(0.85, 0.8),
+  theme_classic() +
+  theme_xaringan(title_font_size = 20,
+                 text_font_size = 16,
+                 background_color = "#ffffff") +
+  theme(legend.position = c(0.82, 0.76),
         legend.background = element_rect(fill = "white", color = "black")) 
 ```
 
@@ -738,16 +774,17 @@ secs <- ggplot(carb_data, aes(fm_consensus, fm_diff, color = Cur)) +
                   size = ps,) +
   lims(x = c(-0.05, 1.1),
        y = c(-yl, yl)) +
-  labs(title = "Difference from consensus",
+  labs(title = "Difference from expected Fm",
        subtitle = "Uncorrected",
        y = "Fm difference") +
   theme_classic() +
   theme_xaringan(title_font_size = 20,
-                 text_font_size = 18) +
+                 text_font_size = 16,
+                 background_color = "#ffffff") +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank(),
         legend.direction = "horizontal",
-        legend.position = c(.88, 1),
+        legend.position = c(.86, 1),
         legend.justification = "bottom")
 
 secs_lbc <- ggplot(carb_data, aes(fm_consensus, fmbc_diff, color = Cur)) +
@@ -758,12 +795,13 @@ secs_lbc <- ggplot(carb_data, aes(fm_consensus, fmbc_diff, color = Cur)) +
                   size = ps) +
   lims(x = c(-0.05, 1.1),
        y = c(-yl, yl)) +
-  labs(subtitle = "LBC-corrected",
-       x = "Fm consensus",
+  labs(subtitle = "Blank corrected",
+       x = "Fm expected",
        y = "Fm difference") +
   theme_classic() +
   theme_xaringan(title_font_size = 20,
-                 text_font_size = 18) +
+                 text_font_size = 16,
+                 background_color = "#ffffff") +
   theme(legend.position = "None")
 
 secs / secs_lbc
@@ -786,27 +824,32 @@ smaller samples = higher dilution = higher flow
 
 plot: sample size vs. required flow
 
-pressure control to maintain constant CO2 to source
+pressure control to maintain constant CO<sub>2</sub> to source
 
-plot: dilution modelling plot
 figure: setup with pressure control
 
 ---
 
 # MICADAS
 
+.pull-left[
+Coming soon(ish)...
+
 Source differences
-* one target in source at a time
+* one target in source at a time - lower blank
 * gas supplied via conical joint in side of target
 
 Inlet differences
-* MICADAS uses closed system
-* CO<sub>2</sub> from carbonates transferred onto resin trap in stream of he
+* MICADAS uses closed inlet
+* CO<sub>2</sub> from carbonates transferred onto resin trap in stream of helium
 * Sample introduced by adding helium and adjusting flow using variable volume
+]
+
+.pull-right[![](images/MICADAS_HGIS_interface.jpeg)]
 
 ???
 
-More pronounced current vs. flow curve makes measurement more difficult at variable CO2 flow.
+More pronounced current vs. flow curve makes measurement more difficult at variable CO<sub>2</sub> flow.
 Salazar and Szidat are developing an open split interface with EA - squish peak with dead volume
 
 photo: micadas source
