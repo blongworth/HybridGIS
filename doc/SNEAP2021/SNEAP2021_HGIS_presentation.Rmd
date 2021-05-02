@@ -164,7 +164,7 @@ Potential for:
 ]
 
 .pull-right[
-![HGIS Target](images/target_cutaway.svg)
+![HGIS Target](images/target_cutaway.png)
 NEC hybrid target cutaway
 ]
 
@@ -193,8 +193,8 @@ read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
   geom_smooth(se = FALSE, span = 0.7, color = dark_blue) + 
   geom_point() +
   labs(title = "Current vs gas flow",
-          x = "Flow (μl/min)", 
-          y = "Source current (μA)") +
+          x = bquote('CO'[2]~'Flow (μl/min)'), 
+          y = "12C current (μA)") +
   theme_classic() +
   theme_xaringan(title_font_size = 20,
                  text_font_size = 16,
@@ -363,9 +363,10 @@ Capillary to source controls gas flow
 
 Open inlets maintain constant atmospheric pressure, producing constant<sup>1</sup> flow to source
 
-.footnote[ [1] flow varies by composition due to differing viscosity]
 
 ![open split diagram](images/HGIS_open_split_drawing.svg)
+
+.footnote[ [1] flow varies by composition due to differing viscosity]
 ]
 
 .pull-right.center[
@@ -436,7 +437,7 @@ flow_time <- data.frame(x = 0:125) %>%
   stat_function(fun=function(x) 30 - (concCO2(x, r = 244) * 30), aes(color = "Helium")) +
   scale_color_manual("Gas", values = c("green", "blue")) +
   labs(title = "Gas flows to source",
-       subtitle = "7mL vial, 244μL/min helium, 30μl/min to source",
+       subtitle = "7mL vial, 244μL/min helium, 30μL/min to source",
        y = "Gas flow (μL/min)") +
   theme_classic() +
   theme_xaringan(title_font_size = 20,
@@ -482,7 +483,7 @@ ggplot(data, aes(co2flow, he12C)) +
   geom_point() +
   labs(title = "Vial dillution current",
        subtitle = "250μL/min displacement, 30μl/min delivery",
-       x = "CO2 flow (μl/m)",
+       x = bquote('CO'[2]~'Flow (μl/min)'), 
        y = "12C current (μA)") +
   theme_classic() +
   theme_xaringan(title_font_size = 20,
@@ -660,9 +661,10 @@ ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
               intercept = blankfit$`DeadGas_(Intercept)`) +
   geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr), size = .3) + 
   xlim(0, 10) +
-  #ylim(0, 1.2)
-  ggtitle("Modelled blank",
-          subtitle = "Fits cross at Fm and current of blank") +
+  labs(title = "Modelled blank",
+       subtitle = "Fits cross at Fm and current of blank",
+       x = "Inverse 12C Current (μA-1)",
+       y = "Fraction modern") +
   theme_classic() +
   theme_xaringan(title_font_size = 20,
                  text_font_size = 16,
@@ -833,7 +835,7 @@ figure: setup with pressure control
 # MICADAS
 
 .pull-left[
-Coming soon(ish)...
+### Coming soon(ish)...
 
 Source differences
 * one target in source at a time - lower blank
@@ -895,45 +897,3 @@ Ted Ognibene, CAMS
 </td>
 </tr>
 </table>
----
-
-# Extra slides
-
----
-# NEC/Ionplus inlets
-
-compare high and low volume approach
-
----
-
-# Method history
-
-Middleton?
-NEC: Xu 2006
-ETH:
-source and inlet refinement
-
-State of the art:
-- reproducibilty: 1%
-- size: >= 10μg C
-- speed: XX minutes per sample or samples/day
-
----
-
-# Results - standards
-
-precision
-reproducibility
-
-plot: gas standards. normalize all to OX-I (or mean of gas standards?) and plot vs time or by type with errors
-
-reproducibility of straight gas vs vial standards
-
-
----
-
-# Open split development
-
-development
-
-photo: gas panel
