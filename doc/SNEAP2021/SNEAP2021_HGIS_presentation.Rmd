@@ -83,7 +83,7 @@ style_extra_css(
 
 <br>
 <br>
-```{r}
+```{r method-table}
 methods <- tribble(~" ", ~"Graphite", ~"CFAMS ECR GIS", ~"Hybrid GIS",
                    "Continous flow", "No", "Yes", "No",
                    "Measurement time", "30 min", "5 min", "15-30 min",
@@ -137,7 +137,7 @@ Predicted chemistry/physics of decomposition and ionization
 <br>
 <br>
 
-```{r, echo=FALSE, fig.align='center', out.width="80%"}
+```{r hgis-arm, echo=FALSE, fig.align='center', out.width="80%"}
 knitr::include_graphics("images/hgis_arm_source.jpeg")
 ```
 ]
@@ -186,7 +186,7 @@ NEC hybrid target cutaway
 ]
 
 .pull-right[
-```{r, fig.height=6, dev='svg'}
+```{r cur-flow, fig.height=6, dev='svg'}
 read.csv(here("data/14Nov2017LPtest.csv"), skip = 4) %>%
   mutate(flow = flowcalc(supply/10, 2E-5, 1.49E-5, 1.58)) %>% 
   ggplot(aes(flow, current)) +
@@ -299,7 +299,7 @@ Smallest samples require minimizing inlet volume and pressure while maintaining 
 ]
 
 .pull-right[
-```{r, fig.height=6, fig.width=7.5, dev='svg'}
+```{r dual-bellows-results, fig.height=6, fig.width=7.5, dev='svg'}
 data <- get_hgis_data(here("data/USAMS052318RHIGS.txt")) %>% 
                   mutate(Num = ifelse(Pos == 15, "S", "U"))
 stdrat <- mean(data$cor1412he[data$Num == "S" & data$outlier == FALSE])
@@ -424,7 +424,7 @@ Balance flow rates to maximize stable currents and minimize sample size
 
 
 .pull-right[
-```{r, fig.height=8, dev='svg'}
+```{r cur-time-os, fig.height=8, dev='svg'}
 data <- get_hgis_data(here("data/USAMS040121R.txt"), as.Date("2021-04-02")) %>% 
   filter(Pos == 5) %>% 
   mutate(time = cum_acqtime/60,
@@ -477,7 +477,7 @@ flow_time / cur_time
 ]
 
 .pull-right[
-```{r, fig.height=6, dev='svg'}
+```{r cur-flow-os, fig.height=6, dev='svg'}
 ggplot(data, aes(co2flow, he12C)) +
   geom_smooth(span = .3, se=FALSE, color = medium_blue) +
   geom_point() +
@@ -504,7 +504,7 @@ Lead into blank on next slide
 
 ---
 
-```{r, fig.height = 4, dev='svg'}
+```{r cur-blank-data, fig.height = 4, dev='svg'}
 data<- get_hgis_data(here("data/USAMS101320R.txt"), as.Date("2020-11-17")) %>% 
   mutate(Num = ifelse(Pos %in% c(2, 4), "S", ifelse(Num == "S", "U", Num)))
 stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
@@ -616,7 +616,7 @@ Measured blank:
 
 .pull-right[
 
-```{r, fig.height = 4, dev='svg'}
+```{r ratio-cur, fig.height = 4, dev='svg'}
 xl <- 8
 
 livefm_cur <- data %>% 
@@ -652,7 +652,7 @@ deadfm_cur <- data %>%
 ```
 
 
-```{r, fig.height = 4, dev='svg'}
+```{r blank-model, fig.height = 4, dev='svg'}
 # Plot of data and model with measured blanks
 ggplot(ds, aes(Cur_inv, mean, color = Gas)) +
   geom_abline(slope = blankfit$LiveGas_Cur_inv, 
@@ -684,7 +684,7 @@ Targets alone and targets + helium (fm and current)
 ...but if current is kept constant, current drops out of correction
 ---
 
-```{r}
+```{r carb-data}
 carb_data <- map_dfr(list.files(here("data_analysed"), full.names = TRUE), read_csv) %>% 
   filter(!is.na(rec_num),
          Cur > 2) %>% 
@@ -710,7 +710,7 @@ $$Fm_s = Fm_m - Fm_{blk}\frac{Fm_{std} - Fm_m}{Fm_{std}}$$
 
 .pull-right[
 
-```{r, fig.height=5, dev='svg'}
+```{r blanks, fig.height=5, dev='svg'}
 carb_data %>% filter(fm_consensus < 0.1 &
               Cur > 2) %>% 
   ggplot(aes(Cur, mean)) +
@@ -762,7 +762,7 @@ It's relatively easy to produce runs with terrible current, but usually not good
 
 .right-column[
 .right[
-```{r, fig.height=6, fig.width=7.5, dev='svg'}
+```{r secondaries, fig.height=6, fig.width=7.5, dev='svg'}
 
 ps <- 0.3
 dw <- 0.03
@@ -873,9 +873,9 @@ Current goals:
 
 # Thank You!
 
-Mark Roberts, Josh Burton, Josh Hlavenka, Al Gagnon, Kalina Gospodinova, and the staff of NOSAMS
+Mark Roberts, Josh Burton, Josh Hlavenka, Al Gagnon, Kalina Gospodinova, Mark Kurz, and the staff of NOSAMS
 
-Karl von Reden
+Karl von Reden, Ann McNichol
 
 Cam McIntyre, SUERC
 
