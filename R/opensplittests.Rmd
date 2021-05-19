@@ -1557,7 +1557,9 @@ ggplot(ds, aes(fm_consensus, sigma)) +
 
 There may be some issues with normalization. The initial two standards on both of the last carbonate runs were lower than the two at the end of the run. On 4/9, first two standards were Fm 1.03 and 0.99, last two were 1.05 and 1.07. On 4/16, first two were 1.02 and 1.04, last two were both 1.05. NOSAMS2 were run first on 4/9 and were high after blank correction. On 4/16 they were run last and were low. 
 
-# Combining data
+# Work for SNEAP 2021 presentation
+
+## Combining data
 
 A weak attempt at combining data. The solution is an analysis script to normalize, average runs, and blank correct by wheel. 
 
@@ -1630,7 +1632,7 @@ data <- rbind(data1013, data1204, data1211, data1218, data205, data304, data409,
 data %>% distinct(wheel, Pos, Sample.Name, fm_consensus, rec_num) %>% filter(fm_consensus > 0.9)
 ```
 
-## Current dependent blank with combined data
+### Current dependent blank with combined data
 ```{r}
 unique(data$Sample.Name)
 ```
@@ -1756,3 +1758,146 @@ ds %>%
   geom_pointrange(aes(ymin = mean - merr, ymax = mean + merr))
 ```
 
+
+## 2021-05-12 Vial dillution tests
+
+USAMS041521R.txt
+## 2021-05-14 Carbonate samples
+
+### Samples
+
+```{r}
+carb_data <- tribble(~vial, ~name, ~rec_num, ~mass,
+                     1, "C-1_1", 83028, 30.05,
+                     2, "C-1_2", 83028, 36.00,
+                     2, "C-1_3", 83028, 31.88,
+                     4, "C-2_1", 1082, 32.57,
+                     5, "C-2_2", 1082, 35.50,
+                     6, "C-2_3", 1082, 34.10,
+                     7, "NOSAMS-2_1", 38809, 35.20,
+                     8, "NOSAMS-2_2", 38809, 32.19,
+                     9, "NOSAMS-2_3", 38809, 33.20
+                     )
+
+#write_csv(carb_data, here("data/carb_data_2021-04-15.csv"))
+carb_data
+```
+
+### Data
+
+Normalizing to gas standards in pos 25, 26, 36 and 37. 
+
+```{r}
+data <- get_hgis_data(here("data/USAMS051421R.txt"), as.Date("2021-05-14")) %>% 
+  mutate(Num = ifelse(Pos %in% c(15, 65), "U", Num))
+stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+data <- data %>% 
+  mutate(normFm = norm_gas(cor1412he, stdrat))
+```
+
+#### Currents and ratios vs time.
+
+```{r}
+data %>% 
+  # filter(!(Pos %in% 21:24)) %>% 
+  plot_hgis_time(normFm, ce*normFm) +
+  ggtitle("Sample ratio vs. time")
+```
+
+
+```{r}
+data %>% 
+  filter(!(Pos %in% 21:24)) %>% 
+  plot_hgis_time(he12C)
+  ggtitle("Sample current vs time")
+```
+
+#### Summary of normalized data per sample
+
+```{r}
+std <- getStdTable()
+
+ds <- data %>% 
+  filter(!outlier) %>% 
+  sum_hgis() %>% 
+  mutate(rec_num = case_when(str_starts(Sample.Name, "LiveGas") ~ 101730,
+                             str_starts(Sample.Name, "C1") ~ 83028,
+                             str_starts(Sample.Name, "TIRI-F") ~ 2138,
+                             str_starts(Sample.Name, "TIRI-I") ~ 17185,
+                             str_starts(Sample.Name, "C-2") ~ 1082,
+                             str_starts(Sample.Name, "NOSAMS2") ~ 38809,
+                             str_starts(Sample.Name, "DeadGas") ~ 72446)) %>% 
+ left_join(select(std, rec_num, fm_consensus), by = "rec_num") %>% 
+ mutate(fm_consensus = case_when(rec_num == 101730 ~ 1.0398,
+                                 rec_num == 72446 ~ 0.0013,
+                                 TRUE ~ fm_consensus))
+
+ds[-(1:4),]
+```
+
+
+```{r}
+data %>% 
+  filter(as.numeric(Pos) > 4) %>% 
+  ggplot(aes(pos_name, normFm)) +
+  geom_boxplot(fill = "slategray1") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) 
+```
+
+
+### Agreement of replicates
+
+Summary statistics to look at reproducibility, accuracy between targets/vials.
+
+```{r}
+ds %>% 
+  filter(as.numeric(Pos) > 4) %>% 
+  mutate(Name = str_remove(Sample.Name, "_.$")) %>% 
+  group_by(Name, fm_consensus) %>% 
+  summarize(Fm.mean = mean(mean),
+            Fm.sd = sd(mean),
+            Cur.mean = mean(Cur),
+            N = n()) 
+```
+
+#### Blank correction
+
+Testing correcting for blank using mass-independent large blank correction. 
+
+Using C-1 with no adjustment for graphite value of blank. 
+
+```{r}
+fmblank <- ds %>%
+  filter(str_starts(Sample.Name, "C1")) %>% 
+  pull(mean) %>% 
+  mean()
+
+fmblank
+ds <- ds %>% 
+  mutate(fm_lbc = doLBC(mean, fmblank, 1.0398),
+         diff = fm_lbc - fm_consensus,
+         normFm = normFm(fm_lbc, fm_consensus),
+         sigma = sigma(fm_lbc, fm_consensus, merr))
+
+ds %>%
+  filter(as.numeric(Pos) > 4) %>% 
+  select(Sample.Name, Cur, fm_consensus, mean, merr, fm_lbc, diff)
+
+ds %>% 
+write_csv(here("data_analysed/USAMS041521.csv"))
+```
+
+```{r}
+ggplot(ds, aes(fm_consensus, diff)) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(ymin = diff - merr, ymax = diff + merr)) +
+  geom_point() +
+  ggtitle("Difference in LBC-corrected vs consensus")
+```
+
+```{r}
+ggplot(ds, aes(fm_consensus, sigma)) +
+  geom_hline(yintercept = 0) +
+  geom_point() +
+  ggtitle("Sigma of LBC-corrected vs consensus")
+```
