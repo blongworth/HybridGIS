@@ -132,8 +132,13 @@ get_hgis_data <- function(file, date) {
 #' @export
 #'
 sum_hgis <- function(data) {
+  
+  stdrat <- mean(data$cor1412he[data$Num == "S" & !data$outlier])
+  stdrat_sd <- sd(data$cor1412he[data$Num == "S" & !data$outlier])
+  
   data %>% 
     group_by(wheel, Pos, Sample.Name, dil_factor) %>%
+    filter(!outlier) %>% 
     summarise(Cur = mean(he12C),
               Cur.sd = sd(he12C),
               mean = mean(normFm),
@@ -141,6 +146,12 @@ sum_hgis <- function(data) {
               exterr = normRunExtErr(normFm),
               interr = mean * (1/sqrt(sum(CntTotGT))), # multiplied internal error by fm, not sure if correct.
               merr = pmax(exterr, interr),
+              cor1412 = mean(cor1412),
+              sig_cor1412 = pmax(normRunExtErr(cor1412), interr),
+              norm_ratio = norm_gas(cor1412, stdrat),
+              sig_norm_ratio = norm_gas_err(cor1412, stdrat, sig_cor1412, stdrat_sd),
+              fm_corr = doLBC,
+              sig_fm_corr = doLBCerr,
               acqtime = sum(Cycles)/10,
               N_acq = n()) 
 }
