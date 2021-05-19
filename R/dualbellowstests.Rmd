@@ -252,7 +252,11 @@ C-1 HY-31410 Pos 18
 pos 8 is ox-i graphite
 
 ```{r}
-data <- get_hgis_data(here("data/USAMS052318RHIGS.txt"))
+data <- get_hgis_data(here("data/USAMS052318RHIGS.txt")) %>% 
+                  mutate(Num = ifelse(Pos == 15, "S", "U"))
+stdrat <- mean(data$cor1412he[data$Num == "S" & data$outlier == FALSE])
+data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
+  
 plot_hgis_time(data)
 ```
 
@@ -331,15 +335,18 @@ data <- get_hgis_data(here("data/USAMS053018R.txt"), as.Date("2018-05-30")) %>%
                   pos_name = paste(Pos, Sample.Name, sep = " - "),
                   dil_factor = case_when(Pos == 5 ~ 972/100,
                                          Pos == 6 ~ 1035/83),
-                  Num = ifelse(Pos %in% c(3,4), "S", Num))
+                  Num = ifelse(Pos == 5, "S", "U"))
 stdrat <- mean(data$cor1412he[data$Num == "S"])
+
 data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
 plot_hgis_time(data)
 ```
 
 
 ```{r}
-sum_hgis(data)
+data %>% 
+  filter(outlier == FALSE) %>% 
+sum_hgis()
 ```
 
 ```{r}
@@ -393,10 +400,10 @@ Data from runs is in USAMS060618R.txt. Not 100% certain which samples are in whi
 data <- get_hgis_data(here("data/USAMS060618R.txt")) %>% 
   filter(Pos != 1,                           #remove spurious pos1 runs
          !(Pos == 3 & X13.12he > 0.011)) %>%     #remove solid OX-I fliers
-                  mutate(Num = ifelse(Pos %in% c(3, 4), "S", "U"))
+                  mutate(Num = ifelse(Pos == 5, "S", "U"))
 
 # Get mean ratio for solid OX-I and normalize data
-stdrat <- mean(data$cor1412he[data$Num == "S"])
+stdrat <- mean(data$cor1412he[data$Num == "S" & data$outlier == FALSE])
 data <- mutate(data, normFm = norm_gas(cor1412he, stdrat))
                   
 plot_hgis_time(data)
