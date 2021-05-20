@@ -1761,7 +1761,25 @@ ds %>%
 
 ## 2021-05-12 Vial dillution tests
 
-USAMS041521R.txt
+### Data
+
+```{r}
+data <- get_hgis_data(here("data/USAMS041521R.txt"), as.Date("2021-05-12"))
+```
+
+#### Currents and ratios vs time.
+
+```{r}
+data %>% 
+  plot_hgis_time(cor1412he, ce*cor1412he) +
+  ggtitle("Sample ratio vs. time")
+```
+
+```{r}
+data %>% 
+  plot_hgis_time(he12C) +
+  ggtitle("Sample current vs. time")
+```
 ## 2021-05-14 Carbonate samples
 
 ### Samples
@@ -1900,4 +1918,27 @@ ggplot(ds, aes(fm_consensus, sigma)) +
   geom_hline(yintercept = 0) +
   geom_point() +
   ggtitle("Sigma of LBC-corrected vs consensus")
+```
+
+## 2021-05-20 Dillution tests
+
+
+### Data
+
+```{r}
+data <- get_hgis_data(here("data/USAMS051421R.txt"), as.Date("2021-05-20"))
+```
+
+#### Currents and ratios vs time.
+
+```{r}
+data %>% 
+  plot_hgis_time(cor1412he, ce*cor1412he) +
+  ggtitle("Sample ratio vs. time")
+```
+
+```{r}
+data %>% 
+  plot_hgis_time(he12C) +
+  ggtitle("Sample current vs. time")
 ```
