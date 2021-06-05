@@ -1,0 +1,77 @@
+---
+title: "HGIS 2021-05-28 Carbonates"
+author: "Brett Longworth"
+date: "6/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(amstools)
+library(HybridGIS)
+library(tidyverse)
+library(here)
+```
+
+
+Data reduction and analsis for carbonate samples run on May 28, 2021. Includes C-1, C-2, and test shell carbonates from Simon Pendleton.
+
+
+Parameters for data reduction
+
+```{r}
+
+#Raw AMS data results file path
+file <- here("data/USAMS052621R.txt")
+
+# Date samples run (needed to separate other experiments with this wheel/targets)
+date <- as.Date("2021-05-28")
+
+# Positions of normalizing standards
+standards <- c(5, 8, 13, 17)
+
+# Positions of blanks for blank correction
+blanks <- c(6, 9, 11)
+```
+
+Look at raw results
+
+```{r}
+df <- get_hgis_data(file, date, standards)
+
+
+```
+
+#### Currents and ratios vs time.
+
+```{r}
+df %>% 
+  filter(!(Pos %in% 1:4)) %>% 
+  plot_hgis_time(normFm, ce*normFm) +
+  ggtitle("Sample ratio vs. time")
+```
+
+```{r}
+df %>% 
+  filter(!(Pos %in% 1:4)) %>% 
+  plot_hgis_time(he12C) +
+  ggtitle("Sample current vs time")
+```
+
+Data reduction proceeds as follows:
+1. Read raw file
+1. Flag outliers by interquartile distance
+1. Apply 13C correction to each run of a target
+1. Determine per-target means, internal and external errors
+1. Normalize targets using mean of standards and propagate errors
+1. Apply a large blank correction using the mean of blanks and propagate errors.
+
+```{r}
+results <- reduce_hgis(file, date, standards, blanks)
+```
+
+
+
