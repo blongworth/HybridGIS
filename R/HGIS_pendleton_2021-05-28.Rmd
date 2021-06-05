@@ -37,7 +37,7 @@ standards <- c(5, 8, 13, 17)
 blanks <- c(6, 9, 11)
 ```
 
-Look at raw results
+## raw results
 
 ```{r}
 df <- get_hgis_data(file, date, standards)
@@ -63,14 +63,16 @@ df %>%
 
 Data reduction proceeds as follows:
 1. Read raw file
-1. Flag outliers by interquartile distance
 1. Apply 13C correction to each run of a target
+1. Flag outliers by interquartile distance
 1. Determine per-target means, internal and external errors
 1. Normalize targets using mean of standards and propagate errors
 1. Apply a large blank correction using the mean of blanks and propagate errors.
 
 ```{r}
-results <- reduce_hgis(file, date, standards, blanks)
+df_sum <- sum_hgis_targets(df) %>% 
+  norm_hgis() %>% 
+  blank_cor_hgis()
 ```
 
 
