@@ -72,8 +72,14 @@ Data reduction proceeds as follows:
 ```{r}
 df_sum <- sum_hgis_targets(df) %>% 
   norm_hgis() %>% 
-  blank_cor_hgis()
+  blank_cor_hgis(blanks = c(6, 9, 11))
+
+df_sum %>% 
+  filter(as.numeric(Pos) > 4) %>% 
+  select(Pos, Sample.Name, he12C, n_runs, fm_corr, sig_fm_corr) %>% 
+  arrange(Sample.Name)
 ```
 
+plot, agreement of replicates, compare to consensus
 
 
