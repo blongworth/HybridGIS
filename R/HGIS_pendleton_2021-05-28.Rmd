@@ -20,7 +20,7 @@ options(scipen = 3)
 ```
 
 
-Data reduction and analsis for carbonate samples run on May 28, 2021. Includes C-1, C-2, and test shell carbonates from Simon Pendleton.
+Data reduction and analysis for carbonate samples run on May 28, 2021. Includes C-1, C-2, and test shell carbonates from Simon Pendleton.
 
 
 
@@ -87,18 +87,41 @@ df_sum <- sum_hgis_targets(df) %>%
 df_sum %>% 
   filter(as.numeric(Pos) > 4) %>% 
   mutate(sig_normFm = max_err * normFm) %>% 
-  select(Pos, Sample.Name, he12C, n_runs, normFm, sig_normFm, fm_corr, sig_fm_corr) %>% 
+  select(Pos, Sample.Name, he12C, n_runs, fm_corr, sig_fm_corr) %>% 
   arrange(Sample.Name) %>% 
   knitr::kable()
   # gt::gt()
 ```
-
-
-plot, agreement of replicates, compare to consensus
 
 ```{r}
 df_sum %>% 
   filter(as.numeric(Pos) > 4) %>% 
 plot_hgis_summary()
 ```
+
+## Agreement of replicates
+
+Compare results for samples with more than one replicate. 
+
+```{r}
+df_sum %>% 
+  filter(as.numeric(Pos) > 4) %>% 
+  compare_replicates() %>% 
+  knitr::kable()
+```
+
+## Agreement with consensus
+
+```{r}
+cons <- df_sum %>% 
+  filter(as.numeric(Pos) > 4,
+         !is.na(fm_consensus)) %>% 
+  select(Sample.Name, fm_consensus, fm_corr, sig_fm_corr) %>% 
+  mutate(Fm_diff = fm_corr - fm_consensus,
+         sigma = amstools::sigma(fm_corr, fm_consensus, sig_fm_corr)) %>% 
+  arrange(Sample.Name)
+  
+knitr::kable(cons)
+```
+
 
