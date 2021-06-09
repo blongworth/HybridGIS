@@ -6,12 +6,13 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+knitr::opts_chunk$set(message = FALSE)
 ```
 
 ```{r}
 library(tidyverse)
 library(here)
+library(openxlsx)
 library(amstools)
 library(HybridGIS)
 
@@ -21,7 +22,6 @@ options(scipen = 3)
 
 
 Data reduction and analysis for carbonate samples run on May 28, 2021. Includes C-1, C-2, and test shell carbonates from Simon Pendleton.
-
 
 
 ```{r}
@@ -56,6 +56,8 @@ Data reduction proceeds as follows:
 
 ```{r}
 df <- get_hgis_data(file, date, standards)
+write_csv(df, here("data_analysed/HGIS_2021-05-28_raw.csv"))
+write.xlsx(df, here("data_analysed/HGIS_2021-05-28_raw.xlsx"))
 ```
 
 #### Currents and ratios vs time.
@@ -79,6 +81,9 @@ df %>%
 df_sum <- sum_hgis_targets(df) %>% 
   norm_hgis() %>% 
   blank_cor_hgis(blanks = c(6, 9, 11))
+
+write_csv(df_sum, here("data_analysed/HGIS_2021-05-28_results.csv"))
+write.xlsx(df_sum, here("data_analysed/HGIS_2021-05-28_results.xlsx"))
 ```
 
 ## Results
